@@ -1,10 +1,27 @@
 import React, { useState } from 'react';
 import { guildApi, type Guild } from '../api/guilds';
+import { useAuthStore } from '../store/useAuthStore';
+import { authApi } from '../api/auth';
+import { Link, useNavigate } from 'react-router-dom';
+
 export default function Dashboard() {
+    const { user, logout } = useAuthStore();
+    const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [guildName, setGuildName] = useState('');
     const [myGuild, setMyGuild] = useState<Guild | null>(null);
     const [loading, setLoading] = useState(false);
+
+    const handleLogout = async () => {
+        try {
+            await authApi.logout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            logout();
+            navigate('/login');
+        }
+    };
 
     const handleCreateGuild = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,6 +48,36 @@ export default function Dashboard() {
                 <div>
                     <h1 className="text-3xl font-bold">Управление</h1>
                     <p className="text-gray-500 mt-1">Siege Architect v1.0</p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <Link to="/profile" className="flex items-center gap-3 p-2 pr-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 hover:border-indigo-500 transition-all group">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 overflow-hidden">
+                            {user?.linked_accounts && user.linked_accounts.length > 0 && user.linked_accounts[0].avatar ? (
+                                <img src={user.linked_accounts[0].avatar} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="font-bold">{user?.name?.charAt(0) || 'U'}</span>
+                            )}
+                        </div>
+                        <div className="hidden sm:block">
+                            <div className="text-sm font-bold group-hover:text-indigo-500 transition-colors">
+                                {user?.linked_accounts && user.linked_accounts.length > 0 
+                                    ? (user.linked_accounts[0].display_name || user.linked_accounts[0].username) 
+                                    : user?.name || 'Профиль'}
+                            </div>
+                            <div className="text-xs text-gray-500">{user?.profile?.family_name || 'Данные не заполнены'}</div>
+                        </div>
+                    </Link>
+
+                    <button 
+                        onClick={handleLogout}
+                        className="p-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm"
+                        title="Выйти"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
                 </div>
             </div>
 
