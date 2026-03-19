@@ -11,6 +11,8 @@ export default function Login() {
     const { startDeepLinkAuth, isLoading: isTgAppLoading, error: tgAppError } = useTelegramAuth();
     const navigate = useNavigate();
 
+    const tma = (window as any).Telegram?.WebApp;
+
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -18,6 +20,38 @@ export default function Login() {
 
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [tgLoading, setTgLoading] = useState(false);
+
+    const handleTelegramClick = async () => {
+        if (tma?.initData) {
+            setTgLoading(true);
+            setError(null);
+            try {
+                // Прямая авторизация через TMA
+                const data = await authApi.verifyTelegramTMA({ initData: tma.initData });
+                setAuth(data.token, data.user);
+                navigate('/dashboard');
+            } catch (err: any) {
+                if (err.response?.status === 404) {
+                    // ЕСЛИ аккаунт не найден — авто-регистрация
+                    try {
+                        const regData = await authApi.registerTelegramTMA({ initData: tma.initData });
+                        setAuth(regData.token, regData.user);
+                        navigate('/dashboard');
+                    } catch (regErr: any) {
+                        setError(regErr.response?.data?.message || 'Ошибка автоматической регистрации');
+                    }
+                } else {
+                    setError(err.response?.data?.message || 'Ошибка входа через Telegram');
+                }
+            } finally {
+                setTgLoading(false);
+            }
+        } else {
+            // Веб-версия: Диплинк
+            startDeepLinkAuth();
+        }
+    };
 
     const displayError = tgAppError || error;
 
@@ -46,7 +80,7 @@ export default function Login() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-zinc-950 p-4 select-none">
+        <div className="flex items-center justify-center min-h-screen bg-zinc-950 p-4 md:p-6 select-none">
             <div className="bg-zinc-900 p-8 md:p-10 rounded-[2rem] shadow-2xl w-full max-w-md border border-zinc-800/50 text-center relative overflow-hidden">
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-violet-700/5 rounded-full blur-3xl"></div>
                 
@@ -119,14 +153,14 @@ export default function Login() {
                     </button>
 
                     <button
-                        onClick={startDeepLinkAuth}
-                        disabled={isTgAppLoading || loading}
+                        onClick={handleTelegramClick}
+                        disabled={isTgAppLoading || loading || tgLoading}
                         className="bg-[#229ED9]/10 hover:bg-[#229ED9]/20 text-[#229ED9] border border-[#229ED9]/30 font-black py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-[10px] italic w-full"
                     >
-                        {isTgAppLoading ? (
+                        {(isTgAppLoading || tgLoading) ? (
                             <div className="w-4 h-4 border-2 border-[#229ED9]/30 border-t-[#229ED9] rounded-full animate-spin"></div>
                         ) : (
-                            <>Вход через приложение Telegram</>
+                            <>Вход через Telegram</>
                         )}
                     </button>
                 </div>

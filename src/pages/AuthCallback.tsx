@@ -21,13 +21,29 @@ export default function AuthCallback() {
 
             if (token) {
                 try {
-                    // Temporarily set token to fetch user data
                     localStorage.setItem('siege-token', token);
-                    const userData = await authApi.getMe();
+                    let userData;
+
+                    const tmaLinkDiscord = localStorage.getItem('siege-tma-link-discord');
+                    const tmaInitData = localStorage.getItem('siege-tma-init-data');
+
+                    if (tmaLinkDiscord === 'true' && tmaInitData) {
+                        userData = await authApi.linkTelegramTMA({ initData: tmaInitData });
+                        
+                        localStorage.removeItem('siege-tma-link-discord');
+                        localStorage.removeItem('siege-tma-init-data');
+                    } else {
+                        userData = await authApi.getMe();
+                    }
                     
                     setAuth(token, userData);
 
-                    if (userData.profile?.family_name) {
+                    // Check for start parameters redirect (Deep link)
+                    const eventRedirect = localStorage.getItem('siege-tma-start-redirect');
+                    if (eventRedirect) {
+                        localStorage.removeItem('siege-tma-start-redirect');
+                        navigate(eventRedirect, { replace: true });
+                    } else if (userData.profile?.family_name) {
                         navigate('/dashboard', { replace: true });
                     } else {
                         navigate('/profile', { replace: true });

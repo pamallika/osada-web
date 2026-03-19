@@ -54,8 +54,18 @@ export const authApi = {
         return data.data; 
     },
 
-    loginViaTelegram: async (payload: any) => {
-        const { data } = await apiClient.post<ApiResponse<AuthResponse>>('auth/telegram/login', payload);
+    verifyTelegramTMA: async (payload: { initData: string }) => {
+        const { data } = await apiClient.post<ApiResponse<AuthResponse>>('auth/telegram/verify', payload);
+        return data.data;
+    },
+
+    registerTelegramTMA: async (payload: { initData: string }) => {
+        const { data } = await apiClient.post<ApiResponse<AuthResponse>>('auth/telegram/register', payload);
+        return data.data;
+    },
+
+    linkTelegramTMA: async (payload: { initData: string }) => {
+        const { data } = await apiClient.post<ApiResponse<User>>('auth/telegram/link', payload);
         return data.data;
     },
 

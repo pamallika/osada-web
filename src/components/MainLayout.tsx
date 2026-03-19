@@ -6,10 +6,9 @@ import { useSyncUser } from '../hooks/useSyncUser';
 
 interface MainLayoutProps {
     children: ReactNode;
-    hideNav?: boolean;
 }
 
-export const MainLayout: FC<MainLayoutProps> = ({ children, hideNav }) => {
+export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
     const { user, logout } = useAuth();
     const { syncUser } = useSyncUser();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -46,8 +45,7 @@ export const MainLayout: FC<MainLayoutProps> = ({ children, hideNav }) => {
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-300 font-sans flex flex-col select-none pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
             {/* Top Navigation Bar */}
-            {!hideNav && (
-                <nav className="sticky top-0 z-[90] bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-800/50 shadow-2xl">
+            <nav className="sticky top-0 z-[90] bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-800/50 shadow-2xl">
                     <div className="max-w-7xl mx-auto px-4 md:px-8">
                         <div className="flex items-center justify-between h-20">
                             {/* Logo and Brand */}
@@ -154,10 +152,9 @@ export const MainLayout: FC<MainLayoutProps> = ({ children, hideNav }) => {
                         </div>
                     )}
                 </nav>
-            )}
 
             {/* Content Area */}
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto relative">
                 {children}
             </main>
         </div>
