@@ -45,6 +45,7 @@ interface AuthState {
     token: string | null;
     user: User | null;
     isInitialLoading: boolean;
+    isTMA: boolean;
     setAuth: (token: string, user?: User) => void;
     setUser: (user: User) => void;
     setInitialLoading: (loading: boolean) => void;
@@ -57,6 +58,7 @@ export const useAuthStore = create<AuthState>()(
             token: localStorage.getItem('siege-token'),
             user: null,
             isInitialLoading: true,
+            isTMA: !!(window as any).Telegram?.WebApp?.initData,
             setAuth: (token, user) => {
                 localStorage.setItem('siege-token', token);
                 set({ token, user: user ?? null, isInitialLoading: false });

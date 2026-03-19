@@ -22,6 +22,7 @@ function App() {
     const [tmaRedirectPath, setTmaRedirectPath] = useState<string | null>(null);
     const hasInitialized = useRef(false);
 
+    const [initError, setInitError] = useState<string | null>(null);
     const { syncUser } = useSyncUser();
 
     useEffect(() => {
@@ -31,40 +32,77 @@ function App() {
         const initApp = async () => {
             const tma = (window as any).Telegram?.WebApp;
 
-            // 1. Theme and Expansion
-            if (tma) {
-                tma.expand();
-            }
-
-            // 2. TMA Auth
-            if (tma?.initData) {
-                try {
-                    const { token: tmaToken, user: tmaUser } = await authApi.verifyTelegramTMA({ initData: tma.initData });
-                    setAuth(tmaToken, tmaUser);
-
+            try {
+                // 1. Theme and Expansion & Synchronous TMA Deep Link Check
+                if (tma) {
+                    tma.expand();
+                    
                     const startParam = tma.initDataUnsafe?.start_param;
                     if (startParam?.startsWith('event_')) {
                         const eventId = startParam.split('_')[1];
                         setTmaRedirectPath(`/events/${eventId}`);
-                    }
-                } catch (error: any) {
-                    if (error.response?.status === 401 || error.response?.status === 404) {
-                        console.log('TMA auth failed or unlinked, logging out');
-                        logout();
                     } else {
-                        console.error('TMA login failed:', error);
+                        setTmaRedirectPath('/dashboard');
                     }
                 }
-            } else if (token) {
-                // 3. Regular Sync (Non-TMA)
-                await syncUser();
-            }
 
-            setInitialLoading(false);
+                // 2. TMA Silent Auth
+                if (tma?.initData) {
+                    try {
+                        let authData;
+                        try {
+                            authData = await authApi.verifyTelegramTMA({ initData: tma.initData });
+                        } catch (error: any) {
+                            if (error.response?.status === 404) {
+                                authData = await authApi.registerTelegramTMA({ initData: tma.initData });
+                            } else {
+                                throw error;
+                            }
+                        }
+
+                        if (authData) {
+                            setAuth(authData.token, authData.user);
+                        }
+                    } catch (error: any) {
+                        console.error('TMA Silent Auth Failed:', error);
+                        setInitError('Не удалось войти через Telegram. Попробуйте перезагрузить приложение.');
+                    }
+                } else if (token) {
+                    // 3. Regular Sync (Non-TMA or linked accounts)
+                    try {
+                        await syncUser();
+                    } catch (error) {
+                        console.error('Profile sync failed:', error);
+                        logout();
+                    }
+                }
+            } catch (err) {
+                console.error('Initial boot error:', err);
+            } finally {
+                setInitialLoading(false);
+            }
         };
 
         initApp();
     }, []); // Empty dependencies to prevent re-execution on token change
+
+    if (initError) {
+        return (
+            <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-16 h-16 bg-rose-900/20 border border-rose-800/50 rounded-2xl flex items-center justify-center mb-6">
+                    <span className="text-2xl">⚠️</span>
+                </div>
+                <h1 className="text-xl font-black text-zinc-100 uppercase tracking-tighter mb-2">Ошибка авторизации</h1>
+                <p className="text-zinc-400 text-sm max-w-xs">{initError}</p>
+                <button 
+                    onClick={() => window.location.reload()}
+                    className="mt-8 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-bold py-3 px-8 rounded-xl border border-zinc-800 transition-all uppercase tracking-widest text-[10px]"
+                >
+                    Перезагрузить
+                </button>
+            </div>
+        );
+    }
 
     if (isInitialLoading) {
         return (
@@ -80,8 +118,8 @@ function App() {
         <BrowserRouter>
             <div className="min-h-screen bg-zinc-950 text-zinc-300">
                 <Routes>
-                    {/* High-priority redirect for TMA deep links */}
-                    {tmaRedirectPath && <Route path="*" element={<Navigate to={tmaRedirectPath} replace />} />}
+                    {/* High-priority redirect for TMA deep links - only for root entry */}
+                    {tmaRedirectPath && <Route path="/" element={<Navigate to={tmaRedirectPath} replace />} />}
                     
                     {/* Public Routes */}
                     <Route path="/login" element={<GuestGuard><Login /></GuestGuard>} />
@@ -113,7 +151,7 @@ function App() {
                     } />
 
                     {/* Default Redirect */}
-                    <Route path="*" element={<Navigate to="/dashboard" />} />
+                    <Route path="*" element={<Navigate to={token ? "/dashboard" : "/login"} replace />} />
                 </Routes>
             </div>
         </BrowserRouter>

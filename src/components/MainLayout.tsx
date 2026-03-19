@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react';
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthStore } from '../store/useAuthStore';
 import { useSyncUser } from '../hooks/useSyncUser';
 
 interface MainLayoutProps {
@@ -9,7 +9,7 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
-    const { user, logout } = useAuth();
+    const { user, logout, isTMA } = useAuthStore();
     const { syncUser } = useSyncUser();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -107,15 +107,17 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                                     </div>
                                 </Link>
 
-                                <button 
-                                    onClick={logout}
-                                    className="p-3 bg-zinc-900 rounded-lg border border-zinc-800/50 text-rose-800 hover:bg-rose-800 hover:text-rose-100 transition-all group"
-                                    title="Выйти"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                    </svg>
-                                </button>
+                                {!isTMA && (
+                                    <button 
+                                        onClick={logout}
+                                        className="p-3 bg-zinc-900 rounded-lg border border-zinc-800/50 text-rose-800 hover:bg-rose-800 hover:text-rose-100 transition-all group"
+                                        title="Выйти"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
+                                    </button>
+                                )}
 
                                 {/* Mobile Menu Toggle */}
                                 <button 

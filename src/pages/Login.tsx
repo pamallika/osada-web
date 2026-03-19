@@ -79,6 +79,14 @@ export default function Login() {
         }
     };
 
+    if (tma?.initData) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-zinc-950">
+                <div className="w-12 h-12 border-4 border-violet-700 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex items-center justify-center min-h-screen bg-zinc-950 p-4 md:p-6 select-none">
             <div className="bg-zinc-900 p-8 md:p-10 rounded-[2rem] shadow-2xl w-full max-w-md border border-zinc-800/50 text-center relative overflow-hidden">
