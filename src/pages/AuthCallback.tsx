@@ -11,6 +11,7 @@ export default function AuthCallback() {
     useEffect(() => {
         const handleCallback = async () => {
             const token = searchParams.get('token');
+            const authCode = searchParams.get('auth_code');
             const error = searchParams.get('error');
 
             if (error) {
@@ -37,20 +38,31 @@ export default function AuthCallback() {
                     }
                     
                     setAuth(token, userData);
-
-                    // Check for start parameters redirect (Deep link)
-                    const eventRedirect = localStorage.getItem('siege-tma-start-redirect');
-                    if (eventRedirect) {
-                        localStorage.removeItem('siege-tma-start-redirect');
-                        navigate(eventRedirect, { replace: true });
-                    } else if (userData.profile?.family_name) {
-                        navigate('/dashboard', { replace: true });
-                    } else {
-                        navigate('/profile', { replace: true });
-                    }
+                    navigate('/dashboard', { replace: true });
                 } catch (err) {
                     console.error('Failed to fetch user data in callback:', err);
                     navigate('/login?error=fetch_user_failed', { replace: true });
+                }
+            } else if (authCode) {
+                try {
+                    const verifier = localStorage.getItem(`siege_tg_verifier_${authCode}`);
+                    if (!verifier) {
+                        console.error('Auth verifier not found for code:', authCode);
+                        navigate('/login?error=auth_no_verifier', { replace: true });
+                        return;
+                    }
+
+                    const data = await authApi.checkTelegramAuth(authCode, verifier);
+                    if (data && data.token && data.user) {
+                        localStorage.removeItem(`siege_tg_verifier_${authCode}`);
+                        setAuth(data.token, data.user);
+                        navigate('/dashboard', { replace: true });
+                    } else {
+                        navigate('/login?error=auth_check_failed', { replace: true });
+                    }
+                } catch (err) {
+                    console.error('Failed to check telegram auth in callback:', err);
+                    navigate('/login?error=auth_check_error', { replace: true });
                 }
             } else {
                 navigate('/login?error=no_token', { replace: true });

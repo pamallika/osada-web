@@ -88,8 +88,8 @@ export const authApi = {
         return data.data;
     },
 
-    initTelegramAuth: async () => {
-        const { data } = await apiClient.post<ApiResponse<{ auth_code: string }>>('auth/telegram/init');
+    initTelegramAuth: async (verifierHash?: string) => {
+        const { data } = await apiClient.post<ApiResponse<{ auth_code: string }>>('auth/telegram/init', { verifier_hash: verifierHash });
         return data.data;
     },
 
@@ -98,8 +98,10 @@ export const authApi = {
         return data.data;
     },
 
-    checkTelegramAuth: async (authCode: string) => {
-        const { data } = await apiClient.get<ApiResponse<AuthResponse | null>>(`auth/telegram/check/${authCode}`);
+    checkTelegramAuth: async (authCode: string, verifier?: string) => {
+        const { data } = await apiClient.get<ApiResponse<AuthResponse | null>>(`auth/telegram/check/${authCode}`, {
+            params: { verifier }
+        });
         return data.data;
     }
 };
