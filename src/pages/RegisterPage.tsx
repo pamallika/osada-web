@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
 import { authApi } from '../api/auth';
 import { useTelegramAuth } from '../hooks/useTelegramAuth';
 
-export default function Login() {
+export default function RegisterPage() {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
     const { setAuth } = useAuthStore();
     const { startDeepLinkAuth, isLoading: isTgAppLoading, error: tgAppError } = useTelegramAuth();
@@ -13,7 +12,8 @@ export default function Login() {
 
     const [formData, setFormData] = useState({
         email: '',
-        password: ''
+        password: '',
+        password_confirmation: ''
     });
 
     const [error, setError] = useState<string | null>(null);
@@ -25,21 +25,27 @@ export default function Login() {
         window.location.href = `${API_URL}/auth/redirect/discord`;
     };
 
-    const handleEmailLogin = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        setLoading(true);
 
+        if (formData.password !== formData.password_confirmation) {
+            setError('Пароли не совпадают');
+            return;
+        }
+
+        setLoading(true);
         try {
-            const data = await authApi.login(formData);
+            const data = await authApi.register({
+                email: formData.email,
+                password: formData.password,
+                password_confirmation: formData.password_confirmation
+            });
             setAuth(data.token, data.user);
-            navigate('/dashboard');
-        } catch (err: unknown) {
+            navigate('/onboarding');
+        } catch (err: any) {
             console.error(err);
-            const message = axios.isAxiosError(err) 
-                ? err.response?.data?.message || 'Ошибка входа' 
-                : 'Неверный email или пароль';
-            setError(message);
+            setError(err.response?.data?.message || 'Ошибка при регистрации');
         } finally {
             setLoading(false);
         }
@@ -55,10 +61,10 @@ export default function Login() {
                         <span className="text-2xl text-violet-400">🏰</span>
                     </div>
                     <h1 className="text-3xl font-black text-zinc-100 tracking-tighter uppercase italic">SAGE</h1>
-                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Система управления событиями</p>
+                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Регистрация нового профиля</p>
                 </div>
 
-                <form onSubmit={handleEmailLogin} className="space-y-5 text-left mb-8 relative">
+                <form onSubmit={handleSubmit} className="space-y-5 text-left mb-8 relative">
                     {displayError && (
                         <div className="bg-rose-900/20 border border-rose-800/50 text-rose-100 p-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3">
                             <span className="text-base">⚠️</span>
@@ -90,6 +96,18 @@ export default function Login() {
                         />
                     </div>
 
+                    <div className="space-y-2">
+                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Подтверждение</label>
+                        <input
+                            type="password"
+                            value={formData.password_confirmation}
+                            onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3 text-zinc-100 font-bold focus:outline-none focus:border-violet-700 transition-all placeholder:text-zinc-700"
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+
                     <button
                         type="submit"
                         disabled={loading}
@@ -97,7 +115,7 @@ export default function Login() {
                     >
                         {loading ? (
                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div>
-                        ) : 'Войти в систему'}
+                        ) : 'Зарегистрироваться'}
                     </button>
                 </form>
 
@@ -106,7 +124,7 @@ export default function Login() {
                         <div className="w-full border-t border-zinc-800/50"></div>
                     </div>
                     <div className="relative flex justify-center text-[9px] font-black uppercase tracking-widest">
-                        <span className="px-3 bg-zinc-900 text-zinc-600">Или авторизация через</span>
+                        <span className="px-3 bg-zinc-900 text-zinc-600">Или регистрация через</span>
                     </div>
                 </div>
 
@@ -133,16 +151,12 @@ export default function Login() {
 
                 <div className="mt-10">
                     <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
-                        Нет аккаунта?{' '}
-                        <Link to="/register" className="text-violet-400 hover:text-violet-300 transition-colors">
-                            Создать профиль
+                        Уже есть аккаунт?{' '}
+                        <Link to="/login" className="text-violet-400 hover:text-violet-300 transition-colors">
+                            Войти в систему
                         </Link>
                     </p>
                 </div>
-
-                <p className="mt-8 text-[9px] text-zinc-600 font-medium leading-relaxed uppercase tracking-tighter max-w-[280px] mx-auto opacity-50">
-                    Авторизуясь, вы соглашаетесь с обработкой ID для синхронизации состава гильдии.
-                </p>
             </div>
         </div>
     );

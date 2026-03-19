@@ -1,7 +1,24 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+    @apply bg-zinc-950 text-zinc-300 antialiased selection:bg-violet-500/30 selection:text-violet-200;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-zinc-100 font-bold;
+  }
+}
+
+@layer components {
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

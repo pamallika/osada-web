@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
+import { authApi } from '../api/auth';
 
 export default function AuthCallback() {
     const [searchParams] = useSearchParams();
@@ -8,22 +9,49 @@ export default function AuthCallback() {
     const setAuth = useAuthStore((state) => state.setAuth);
 
     useEffect(() => {
-        const token = searchParams.get('token');
+        const handleCallback = async () => {
+            const token = searchParams.get('token');
+            const error = searchParams.get('error');
 
-        if (token) {
-            setAuth(token);
+            if (error) {
+                console.error('Auth error:', error);
+                navigate(`/login?error=${error}`, { replace: true });
+                return;
+            }
 
-            navigate('/dashboard');
-        } else {
-            navigate('/login?error=no_token');
-        }
+            if (token) {
+                try {
+                    // Temporarily set token to fetch user data
+                    localStorage.setItem('siege-token', token);
+                    const userData = await authApi.getMe();
+                    
+                    setAuth(token, userData);
+
+                    if (userData.profile?.family_name) {
+                        navigate('/dashboard', { replace: true });
+                    } else {
+                        navigate('/profile', { replace: true });
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch user data in callback:', err);
+                    navigate('/login?error=fetch_user_failed', { replace: true });
+                }
+            } else {
+                navigate('/login?error=no_token', { replace: true });
+            }
+        };
+
+        handleCallback();
     }, [navigate, setAuth, searchParams]);
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">
-            <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-lg font-medium">Завершаем авторизацию...</p>
+        <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white font-sans">
+            <div className="flex flex-col items-center gap-6">
+                <div className="w-16 h-16 border-4 border-violet-700 border-t-transparent rounded-2xl animate-spin shadow-xl shadow-violet-900/20"></div>
+                <div className="text-center">
+                    <p className="text-xl font-black uppercase italic tracking-widest text-zinc-100">Синхронизация...</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 mt-2">Завершаем процесс авторизации</p>
+                </div>
             </div>
         </div>
     );

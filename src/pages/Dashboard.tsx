@@ -1,169 +1,307 @@
-import React, { useState } from 'react';
-import { guildApi, type Guild } from '../api/guilds';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
+import { guildApi } from '../api/guilds';
 import { authApi } from '../api/auth';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { NoGuildView } from '../components/NoGuildView';
+import { PendingApprovalView } from '../components/PendingApprovalView';
+import { GuildApplicationsList } from '../components/GuildApplicationsList';
+import { GuildMembersList } from '../components/GuildMembersList';
+import { useSyncUser } from '../hooks/useSyncUser';
 
 export default function Dashboard() {
-    const { user, logout } = useAuthStore();
+    const { user, setUser } = useAuthStore();
+    useSyncUser();
     const navigate = useNavigate();
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [guildName, setGuildName] = useState('');
-    const [myGuild, setMyGuild] = useState<Guild | null>(null);
-    const [loading, setLoading] = useState(false);
 
-    const handleLogout = async () => {
-        try {
-            await authApi.logout();
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            logout();
-            navigate('/login');
+    const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'applications'>('overview');
+    const [copySuccess, setCopySuccess] = useState(false);
+    const [leaveLoading, setLeaveLoading] = useState(false);
+    const [editingSlug, setEditingSlug] = useState(false);
+    const [newSlug, setNewSlug] = useState('');
+    const [slugLoading, setSlugLoading] = useState(false);
+
+    // Invite Context Recovery
+    useEffect(() => {
+        const pendingInvite = localStorage.getItem('pending_invite');
+        if (pendingInvite) {
+            // Check if user is already in a guild
+            const memberships = user?.guild_memberships || [];
+            const activeMembership = memberships.find(m => m.status === 'active');
+            const pendingMembership = memberships.find(m => m.status === 'pending');
+
+            if (!activeMembership && !pendingMembership) {
+                navigate(`/invite/${pendingInvite}`);
+            } else {
+                // If user is already in a guild or has a pending app, we clear the recovery slug
+                localStorage.removeItem('pending_invite');
+            }
+        }
+    }, [user, navigate]);
+
+    // Проверка членства в гильдии
+    const memberships = user?.guild_memberships || [];
+    const activeMembership = memberships.find(m => m.status === 'active');
+    const pendingMembership = memberships.find(m => m.status === 'pending');
+
+    const isManagement = activeMembership && ['creator', 'admin', 'officer'].includes(activeMembership.role);
+    const isCreator = activeMembership?.role === 'creator';
+    const canSeeApplications = activeMembership && ['creator', 'admin'].includes(activeMembership.role);
+
+    useEffect(() => {
+        if (activeMembership?.guild?.invite_slug) {
+            setNewSlug(activeMembership.guild.invite_slug);
+        }
+    }, [activeMembership]);
+
+    const copyToClipboard = () => {
+        if (activeMembership?.guild?.invite_slug) {
+            const fullUrl = `${window.location.origin}/invite/${activeMembership.guild.invite_slug}`;
+            navigator.clipboard.writeText(fullUrl);
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000);
         }
     };
 
-    const handleCreateGuild = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!guildName.trim()) return;
+    const handleLeaveGuild = async () => {
+        const message = isCreator 
+            ? "Внимание! Вы являетесь создателем гильдии. Ваш выход приведет к ДЕАКТИВАЦИИ гильдии для всех участников. Вы уверены?"
+            : "Вы уверены, что хотите покинуть гильдию?";
+        
+        if (!confirm(message)) return;
 
-        setLoading(true);
+        setLeaveLoading(true);
         try {
-            const newGuild = await guildApi.create(guildName);
-            setMyGuild(newGuild);
-            setIsModalOpen(false);
-            alert(`Гильдия "${newGuild.name}" успешно создана!`);
+            const updatedUser = await guildApi.leaveGuild();
+            setUser(updatedUser);
+            navigate('/dashboard');
         } catch (error) {
-            console.error(error);
-            alert('Ошибка при создании гильдии. Проверь, запущен ли бэкенд и авторизован ли ты.');
+            console.error('Failed to leave guild:', error);
+            alert('Ошибка при выходе из гильдии');
         } finally {
-            setLoading(false);
+            setLeaveLoading(false);
         }
+    };
+
+    const handleUpdateSlug = async () => {
+        if (!newSlug.trim() || newSlug === activeMembership?.guild.invite_slug) {
+            setEditingSlug(false);
+            return;
+        }
+
+        setSlugLoading(true);
+        try {
+            await guildApi.updateInviteSlug(newSlug);
+            const updatedUser = await authApi.getMe();
+            setUser(updatedUser);
+            setEditingSlug(false);
+        } catch (error: any) {
+            console.error('Failed to update slug:', error);
+            alert(error.response?.data?.message || 'Ошибка при обновлении ссылки');
+        } finally {
+            setSlugLoading(false);
+        }
+    };
+
+    const renderContent = () => {
+        if (!activeMembership) {
+            if (pendingMembership) {
+                return <PendingApprovalView guildName={pendingMembership.guild.name} />;
+            }
+            return <NoGuildView />;
+        }
+
+        const inviteLink = activeMembership.guild.invite_slug 
+            ? `${window.location.origin}/invite/${activeMembership.guild.invite_slug}`
+            : 'Ссылка не настроена';
+
+        return (
+            <div className="space-y-6 select-none animate-in fade-in duration-500">
+                {/* Tabs & Top Actions */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div className="flex gap-2 p-1 bg-zinc-900 rounded-xl border border-zinc-800/50 w-fit shadow-inner">
+                        <button
+                            onClick={() => setActiveTab('overview')}
+                            className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] italic transition-all ${
+                                activeTab === 'overview' ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/30'
+                            }`}
+                        >
+                            Обзор
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('members')}
+                            className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] italic transition-all ${
+                                activeTab === 'members' ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/30'
+                            }`}
+                        >
+                            Состав
+                        </button>
+                        {canSeeApplications && (
+                            <button
+                                onClick={() => setActiveTab('applications')}
+                                className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] italic transition-all ${
+                                    activeTab === 'applications' ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/30'
+                                }`}
+                            >
+                                Заявки
+                            </button>
+                        )}
+                    </div>
+
+                    <button 
+                        onClick={handleLeaveGuild}
+                        disabled={leaveLoading}
+                        className="bg-zinc-900 hover:bg-rose-900/20 hover:text-rose-500 border border-zinc-800/50 text-zinc-500 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all flex items-center justify-center gap-2"
+                    >
+                        {leaveLoading ? 'Выход...' : isCreator ? 'Деактивировать Гильдию' : 'Выйти из Гильдии'}
+                    </button>
+                </div>
+
+                {activeTab === 'overview' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Карточка гильдии */}
+                        <div className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800/50 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+                                <span className="text-8xl font-black italic uppercase tracking-tighter text-zinc-100">SAGE</span>
+                            </div>
+                            <div className="relative z-10">
+                                <span className="text-[10px] font-black text-violet-500 uppercase tracking-[0.3em] italic">Гильдия</span>
+                                <h2 className="text-4xl font-black mt-2 text-zinc-100 uppercase italic tracking-tighter">{activeMembership.guild.name}</h2>
+                                <div className="mt-4 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Ваш Ранг: <span className="text-zinc-300 italic">{activeMembership.role}</span></p>
+                                </div>
+                                <div className="flex gap-3 mt-10">
+                                    <button 
+                                        onClick={() => setActiveTab('members')}
+                                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3.5 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all border border-zinc-700/50"
+                                    >
+                                        Список состава
+                                    </button>
+                                    {isManagement && (
+                                        <button 
+                                            onClick={() => navigate('/events', { state: { openCreateModal: true } })}
+                                            className="bg-violet-700 hover:bg-violet-600 text-white py-3.5 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all shadow-xl shadow-violet-900/20"
+                                        >
+                                            Создать событие
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Инвайт-ссылка (Теперь видна всем) */}
+                        <div className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800/50 flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h2 className="text-2xl font-black text-zinc-100 uppercase italic tracking-tight">Приглашение</h2>
+                                    {isCreator && !editingSlug && (
+                                        <button 
+                                            onClick={() => setEditingSlug(true)}
+                                            className="text-[10px] font-black text-violet-500 uppercase tracking-widest hover:text-violet-400 transition-colors"
+                                        >
+                                            Изменить ссылку
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                                    {isCreator 
+                                        ? "Настройте уникальный ID для вашей гильдии и делитесь ссылкой."
+                                        : "Используйте эту ссылку, чтобы пригласить новых участников."}
+                                </p>
+                            </div>
+                            
+                            <div className="mt-8 space-y-4">
+                                {editingSlug ? (
+                                    <div className="space-y-3">
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700 font-bold text-[10px] uppercase">ID:</span>
+                                            <input 
+                                                type="text"
+                                                value={newSlug}
+                                                onChange={(e) => setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                                                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-4 pl-10 pr-4 text-zinc-100 font-bold outline-none focus:border-violet-700 transition-all"
+                                                placeholder="my-guild-name"
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={handleUpdateSlug}
+                                                disabled={slugLoading}
+                                                className="flex-1 bg-violet-700 hover:bg-violet-600 text-white font-black py-3 rounded-xl text-[10px] uppercase italic transition-all disabled:opacity-50"
+                                            >
+                                                {slugLoading ? '...' : 'Сохранить'}
+                                            </button>
+                                            <button 
+                                                onClick={() => setEditingSlug(false)}
+                                                className="px-6 bg-zinc-800 hover:bg-zinc-700 text-zinc-500 font-black py-3 rounded-xl text-[10px] uppercase italic transition-all"
+                                            >
+                                                Отмена
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-3">
+                                        <div 
+                                            onClick={copyToClipboard}
+                                            className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 text-sm md:text-base font-bold text-zinc-400 break-all font-mono cursor-pointer hover:border-zinc-700 transition-all group/link relative"
+                                        >
+                                            {inviteLink}
+                                            <div className="absolute top-2 right-2 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                                                <svg className="w-4 h-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={copyToClipboard}
+                                            disabled={!activeMembership.guild.invite_slug}
+                                            className={`w-full py-4 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all flex items-center justify-center gap-2 ${
+                                                copySuccess ? 'bg-emerald-800 text-white shadow-lg shadow-emerald-900/20' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed'
+                                            }`}
+                                        >
+                                            {copySuccess ? (
+                                                <>
+                                                    <span className="text-base">✅</span>
+                                                    Ссылка скопирована!
+                                                </>
+                                            ) : 'Копировать ссылку'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'members' && (
+                    <div className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800/50 shadow-sm animate-in slide-in-from-bottom-2 duration-300">
+                        <div className="mb-8 flex items-center justify-between">
+                            <h2 className="text-2xl font-black text-zinc-100 uppercase italic tracking-tight">Состав Гильдии</h2>
+                            <div className="bg-zinc-950 px-4 py-2 rounded-lg border border-zinc-800/50">
+                                <span className="text-[10px] font-black text-violet-500 uppercase tracking-widest italic">Live Status</span>
+                            </div>
+                        </div>
+                        <GuildMembersList currentUserId={user!.id} currentUserRole={activeMembership.role} />
+                    </div>
+                )}
+
+                {activeTab === 'applications' && canSeeApplications && (
+                    <div className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800/50 shadow-sm animate-in slide-in-from-bottom-2 duration-300">
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-black text-zinc-100 uppercase italic tracking-tight">Входящие Заявки</h2>
+                            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Ожидают вашего решения</p>
+                        </div>
+                        <GuildApplicationsList />
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-4 md:p-8">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold">Управление</h1>
-                    <p className="text-gray-500 mt-1">Siege Architect v1.0</p>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <Link to="/profile" className="flex items-center gap-3 p-2 pr-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 hover:border-indigo-500 transition-all group">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 overflow-hidden">
-                            {user?.linked_accounts && user.linked_accounts.length > 0 && user.linked_accounts[0].avatar ? (
-                                <img src={user.linked_accounts[0].avatar} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                                <span className="font-bold">{user?.name?.charAt(0) || 'U'}</span>
-                            )}
-                        </div>
-                        <div className="hidden sm:block">
-                            <div className="text-sm font-bold group-hover:text-indigo-500 transition-colors">
-                                {user?.linked_accounts && user.linked_accounts.length > 0 
-                                    ? (user.linked_accounts[0].display_name || user.linked_accounts[0].username) 
-                                    : user?.name || 'Профиль'}
-                            </div>
-                            <div className="text-xs text-gray-500">{user?.profile?.family_name || 'Данные не заполнены'}</div>
-                        </div>
-                    </Link>
-
-                    <button 
-                        onClick={handleLogout}
-                        className="p-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm"
-                        title="Выйти"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Карточка гильдии */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    {myGuild ? (
-                        <div>
-                            <span className="text-xs font-bold text-indigo-500 uppercase tracking-wider">Ваша гильдия</span>
-                            <h2 className="text-2xl font-bold mt-1">{myGuild.name}</h2>
-                            <p className="text-gray-400 text-sm mb-4">slug: {myGuild.slug}</p>
-                            <div className="flex gap-2">
-                                <button className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 py-2 px-4 rounded-lg text-sm font-medium transition">
-                                    Участники
-                                </button>
-                                <button className="bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition">
-                                    Создать осаду
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div>
-                            <h2 className="text-xl font-semibold mb-2">Создание гильдии</h2>
-                            <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">
-                                Вы еще не состоите в гильдии. Создайте свою, чтобы начать.
-                            </p>
-                            <button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-xl transition-all shadow-lg shadow-indigo-500/20"
-                            >
-                                + Создать новую
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Инвайт-ссылка (активна только если есть гильдия) */}
-                <div className={`bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 ${!myGuild && 'opacity-50'}`}>
-                    <h2 className="text-xl font-semibold mb-2">Приглашение</h2>
-                    <p className="text-gray-500 text-sm mb-4">
-                        Генерация ссылки для вступления новых бойцов.
-                    </p>
-                    <button
-                        disabled={!myGuild}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-xl transition-all disabled:bg-gray-300 dark:disabled:bg-gray-700"
-                    >
-                        Сгенерировать ссылку
-                    </button>
-                </div>
-            </div>
-
-            {/* Простейшее модальное окно */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-                        <h2 className="text-2xl font-bold mb-4">Новая гильдия</h2>
-                        <form onSubmit={handleCreateGuild}>
-                            <input
-                                autoFocus
-                                type="text"
-                                placeholder="Название гильдии"
-                                className="w-full p-4 bg-gray-100 dark:bg-gray-900 rounded-2xl mb-4 outline-none focus:ring-2 ring-indigo-500 transition-all"
-                                value={guildName}
-                                onChange={(e) => setGuildName(e.target.value)}
-                            />
-                            <div className="flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 py-3 text-gray-500 font-medium"
-                                >
-                                    Отмена
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="flex-1 bg-indigo-600 text-white rounded-xl font-medium disabled:opacity-50"
-                                >
-                                    {loading ? 'Создание...' : 'Создать'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+        <div className="max-w-7xl mx-auto p-4 md:p-10 font-sans">
+            {renderContent()}
         </div>
     );
 }

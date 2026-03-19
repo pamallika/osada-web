@@ -8,4 +8,12 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    allowedHosts: ['arigami.space', 'api.arigami.space'],
+    host: '0.0.0.0',
+    port: 5173,
+    hmr: {
+        host: 'arigami.space'
+    }
+  }
 })
