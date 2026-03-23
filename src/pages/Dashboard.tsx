@@ -7,11 +7,9 @@ import { NoGuildView } from '../components/NoGuildView';
 import { PendingApprovalView } from '../components/PendingApprovalView';
 import { GuildApplicationsList } from '../components/GuildApplicationsList';
 import { GuildMembersList } from '../components/GuildMembersList';
-import { useSyncUser } from '../hooks/useSyncUser';
 
 export default function Dashboard() {
     const { user, setUser } = useAuthStore();
-    useSyncUser();
     const navigate = useNavigate();
 
     const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'applications'>('overview');

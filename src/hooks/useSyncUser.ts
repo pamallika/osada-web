@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
 import { authApi } from '../api/auth';
@@ -19,10 +19,6 @@ export const useSyncUser = () => {
             }
         }
     }, [token, setUser, logout]);
-
-    useEffect(() => {
-        syncUser();
-    }, [syncUser]);
 
     return { syncUser };
 };
