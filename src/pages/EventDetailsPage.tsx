@@ -13,6 +13,7 @@ import { CreateEventModal } from '../components/CreateEventModal';
 import { PublishEventModal } from '../components/PublishEventModal';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { useEventWebSockets } from '../hooks/useEventWebSockets';
 
 const EventDetailsPage: FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -25,6 +26,9 @@ const EventDetailsPage: FC = () => {
     const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
 
     const eventId = parseInt(id || '0');
+    
+    // Subscribe to real-time updates
+    useEventWebSockets(eventId);
     const activeGuildMembership = user?.guild_memberships?.[0];
     const activeGuildId = activeGuildMembership?.guild.id;
     const userRole = activeGuildMembership?.role;
