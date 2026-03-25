@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { NoGuildView } from '../components/NoGuildView';
 import { PendingApprovalView } from '../components/PendingApprovalView';
 import { GuildApplicationsList } from '../components/GuildApplicationsList';
-import { GuildMembersList } from '../components/GuildMembersList';
+import { GuildMembersTab } from '../components/GuildMembersTab';
 
 export default function Dashboard() {
     const { user, setUser } = useAuthStore();
@@ -82,7 +82,7 @@ export default function Dashboard() {
     };
 
     const handleUpdateSlug = async () => {
-        if (!newSlug.trim() || newSlug === activeMembership?.guild.invite_slug) {
+        if (!newSlug.trim() || newSlug === activeMembership?.guild?.invite_slug) {
             setEditingSlug(false);
             return;
         }
@@ -104,12 +104,21 @@ export default function Dashboard() {
     const renderContent = () => {
         if (!activeMembership) {
             if (pendingMembership) {
-                return <PendingApprovalView guildName={pendingMembership.guild.name} />;
+                return <PendingApprovalView guildName={pendingMembership.guild?.name || 'Гильдия'} />;
             }
             return <NoGuildView />;
         }
 
-        const inviteLink = activeMembership.guild.invite_slug 
+        if (!activeMembership.guild) {
+            return (
+                <div className="flex flex-col items-center justify-center p-20 gap-4">
+                    <div className="w-10 h-10 border-2 border-violet-700/20 border-t-violet-700 rounded-full animate-spin"></div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 italic animate-pulse">Загрузка данных гильдии</span>
+                </div>
+            );
+        }
+
+        const inviteLink = activeMembership.guild?.invite_slug 
             ? `${window.location.origin}/invite/${activeMembership.guild.invite_slug}`
             : 'Ссылка не настроена';
 
@@ -164,7 +173,7 @@ export default function Dashboard() {
                             </div>
                             <div className="relative z-10">
                                 <span className="text-[10px] font-black text-violet-500 uppercase tracking-[0.3em] italic">Гильдия</span>
-                                <h2 className="text-4xl font-black mt-2 text-zinc-100 uppercase italic tracking-tighter">{activeMembership.guild.name}</h2>
+                                <h2 className="text-4xl font-black mt-2 text-zinc-100 uppercase italic tracking-tighter">{activeMembership.guild?.name || '...'}</h2>
                                 <div className="mt-4 flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
                                     <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Ваш Ранг: <span className="text-zinc-300 italic">{activeMembership.role}</span></p>
@@ -280,7 +289,7 @@ export default function Dashboard() {
                                 <span className="text-[10px] font-black text-violet-500 uppercase tracking-widest italic">Live Status</span>
                             </div>
                         </div>
-                        <GuildMembersList currentUserId={user!.id} currentUserRole={activeMembership.role} />
+                        <GuildMembersTab currentUserId={user!.id} currentUserRole={activeMembership.role as any} />
                     </div>
                 )}
 
