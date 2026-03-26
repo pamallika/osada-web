@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { eventsApi } from '../api/events';
 import { authApi } from '../api/auth';
 import { useAuthStore } from '../store/useAuthStore';
-import { SquadBuilder } from '../components/SquadBuilder';
 import { SquadSlotGrid } from '../components/SquadSlotGrid';
 import { SystemStatusBlocks } from '../components/SystemStatusBlocks';
 import { EventStatsBar } from '../components/EventStatsBar';
@@ -14,7 +13,6 @@ import { PublishEventModal } from '../components/PublishEventModal';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useEventWebSockets } from '../hooks/useEventWebSockets';
-import { guildApi } from '../api/guilds';
 import { useNotificationStore } from '../store/useNotificationStore';
 
 const EventDetailsPage: FC = () => {
@@ -22,12 +20,9 @@ const EventDetailsPage: FC = () => {
     const navigate = useNavigate();
     const { user, setUser } = useAuthStore();
     
-    const [viewMode, setViewMode] = useState<'view' | 'edit'>('view');
     const [isProcessing, setIsProcessing] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
-    const [isDrafting, setIsDrafting] = useState(false);
-    const [memberSearch, setMemberSearch] = useState('');
     const { addNotification } = useNotificationStore();
 
     const eventId = parseInt(id || '0');
@@ -38,12 +33,7 @@ const EventDetailsPage: FC = () => {
     const activeGuildId = activeGuildMembership?.guild.id;
     const userRole = activeGuildMembership?.role;
     const isOfficer = ['creator', 'admin', 'officer'].includes(userRole || '');
-
-    const { data: guildMembers } = useQuery({
-        queryKey: ['guild-members'],
-        queryFn: () => guildApi.getMembers(),
-        enabled: isDrafting,
-    });
+    const isAdmin = ['creator', 'admin'].includes(userRole || '');
 
     const { data: event, isLoading, error, refetch } = useQuery({
         queryKey: ['event', eventId],
@@ -176,6 +166,52 @@ const EventDetailsPage: FC = () => {
         }
     };
 
+    const handleAddSquad = async (name: string, limit: number) => {
+        setIsProcessing(true);
+        try {
+            await eventsApi.addSquad(event.id, { name, limit });
+            addNotification({ title: 'Отряды', message: 'Отряд успешно создан', type: 'success' });
+            refetch();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Ошибка при создании');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleUpdateSquad = async (squadId: number, data: { name?: string, limit?: number }) => {
+        setIsProcessing(true);
+        const squad = event.squads?.find(s => s.id === squadId);
+        if (!squad) return;
+
+        try {
+            await eventsApi.updateSquad(event.id, squadId, { 
+                name: data.name ?? squad.name, 
+                limit: data.limit ?? squad.limit 
+            });
+            addNotification({ title: 'Отряды', message: 'Изменения сохранены', type: 'success' });
+            refetch();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Ошибка при обновлении');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleDeleteSquad = async (squadId: number) => {
+        if (!confirm('Вы уверены, что хотите удалить этот отряд?')) return;
+        setIsProcessing(true);
+        try {
+            await eventsApi.deleteSquad(event.id, squadId);
+            addNotification({ title: 'Отряды', message: 'Отряд удален', type: 'info' });
+            refetch();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Ошибка при удалении');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-zinc-950 font-sans p-4 md:p-10 select-none">
             <div className="max-w-7xl mx-auto">
@@ -260,114 +296,28 @@ const EventDetailsPage: FC = () => {
                     <EventStatsBar event={event} />
                 </div>
 
-                {isOfficer && !isArchived && (
-                    <div className="flex gap-2 p-1.5 bg-zinc-900 rounded-2xl border border-zinc-800/50 w-fit mb-10 overflow-x-auto no-scrollbar">
-                        <button
-                            onClick={() => setViewMode('view')}
-                            className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] italic transition-all whitespace-nowrap ${
-                                viewMode === 'view' ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20' : 'text-zinc-500 hover:text-zinc-300'
-                            }`}
-                        >
-                            Мониторинг
-                        </button>
-                        <button
-                            onClick={() => setViewMode('edit')}
-                            className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] italic transition-all whitespace-nowrap ${
-                                viewMode === 'edit' ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20' : 'text-zinc-500 hover:text-zinc-300'
-                            }`}
-                        >
-                            Конструктор
-                        </button>
-                        <button
-                            onClick={() => {
-                                setIsDrafting(!isDrafting);
-                                setViewMode('view');
-                            }}
-                            className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] italic transition-all whitespace-nowrap border ${
-                                isDrafting 
-                                ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-900/20' 
-                                : 'bg-zinc-950 border-zinc-800 text-amber-500 hover:border-amber-500/50'
-                            }`}
-                        >
-                            {isDrafting ? '⚡ Идет рассадка' : '🎯 Рассадка (D&D)'}
-                        </button>
-                    </div>
-                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
-                    {isDrafting && (
-                        <div className="lg:col-span-1 space-y-6 animate-in slide-in-from-left duration-500">
-                            <div className="bg-zinc-900 p-6 rounded-[2rem] border border-zinc-800/50 sticky top-24">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-[10px] font-black uppercase tracking-widest text-amber-500 italic">Участники Гильдии</h3>
-                                    <span className="text-[10px] font-bold text-zinc-600">{(guildMembers || []).length}</span>
-                                </div>
-                                
-                                <input 
-                                    type="text"
-                                    placeholder="ПОИСК ПО ИМЕНИ..."
-                                    value={memberSearch}
-                                    onChange={(e) => setMemberSearch(e.target.value)}
-                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-[10px] font-bold text-zinc-100 placeholder:text-zinc-700 outline-none focus:border-amber-500 transition-all mb-4 uppercase italic"
-                                />
-
-                                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                                    {(guildMembers || [])
-                                        .filter(m => m.user?.profile?.family_name?.toLowerCase().includes(memberSearch.toLowerCase()) || m.user?.profile?.global_name?.toLowerCase().includes(memberSearch.toLowerCase()))
-                                        .map(member => (
-                                            <div 
-                                                key={member.id}
-                                                draggable
-                                                onDragStart={(e) => {
-                                                    e.dataTransfer.setData('userId', member.user?.id.toString() || '');
-                                                    e.dataTransfer.effectAllowed = 'move';
-                                                }}
-                                                className="flex items-center gap-3 p-3 bg-zinc-950/50 rounded-xl border border-zinc-800/50 hover:border-amber-500/50 cursor-grab active:cursor-grabbing group transition-all"
-                                            >
-                                                <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-[10px] font-black text-zinc-500 italic border border-zinc-800 group-hover:text-amber-500 group-hover:border-amber-500/30 transition-all">
-                                                    {member.user?.profile?.family_name?.charAt(0) || '?'}
-                                                </div>
-                                                <div className="flex flex-col min-w-0">
-                                                    <span className="text-[10px] font-black text-zinc-300 uppercase italic truncate leading-tight group-hover:text-white">
-                                                        {member.user?.profile?.family_name || member.user?.profile?.global_name || 'Участник'}
-                                                    </span>
-                                                    <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-tighter">
-                                                        {member.user?.profile?.char_class || '—'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                </div>
-
-                                <div className="mt-6 pt-6 border-t border-zinc-800/50">
-                                    <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest leading-relaxed">
-                                        💡 Перетаскивайте участников на карточки отрядов для быстрой рассадки.
-                                    </p>
-                                </div>
+                    <div className="lg:col-span-3 space-y-10">
+                        <div className="space-y-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-1.5 h-8 bg-violet-700 rounded-full"></div>
+                                <h2 className="text-3xl font-black text-zinc-100 uppercase italic tracking-tighter">Состав отрядов</h2>
                             </div>
+                            
+                            <SquadSlotGrid 
+                                event={event} 
+                                onJoin={handleJoin} 
+                                onKick={handleKick}
+                                onDecline={handleDecline}
+                                onMoveUser={handleMoveUser}
+                                onAddSquad={handleAddSquad}
+                                onUpdateSquad={handleUpdateSquad}
+                                onDeleteSquad={handleDeleteSquad}
+                                isOfficer={isOfficer && !isArchived}
+                                isAdmin={isAdmin && !isArchived}
+                            />
                         </div>
-                    )}
-                    <div className={`${isDrafting ? 'lg:col-span-3' : 'lg:col-span-3'} space-y-10`}>
-                        {isOfficer && viewMode === 'edit' && !isArchived ? (
-                            <SquadBuilder event={event} onUpdate={() => refetch()} />
-                        ) : (
-                            <div className="space-y-10">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-1.5 h-8 bg-violet-700 rounded-full"></div>
-                                    <h2 className="text-3xl font-black text-zinc-100 uppercase italic tracking-tighter">Состав отрядов</h2>
-                                </div>
-                                
-                                <SquadSlotGrid 
-                                    event={event} 
-                                    onJoin={handleJoin} 
-                                    onDecline={handleDecline}
-                                    onKick={handleKick}
-                                    onMoveUser={handleMoveUser}
-                                    isOfficer={isOfficer && !isArchived}
-                                    isDrafting={isDrafting}
-                                />
-                            </div>
-                        )}
                     </div>
 
                     <div className="space-y-8">
@@ -391,7 +341,10 @@ const EventDetailsPage: FC = () => {
                             <SystemStatusBlocks 
                                 event={event} 
                                 onKick={handleKick}
+                                onDecline={handleDecline}
+                                onMoveUser={handleMoveUser}
                                 isOfficer={isOfficer && !isArchived}
+                                isAdmin={isAdmin && !isArchived}
                             />
                         </div>
                     </div>

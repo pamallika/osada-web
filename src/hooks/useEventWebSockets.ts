@@ -45,7 +45,7 @@ export const useEventWebSockets = (eventId: number | undefined) => {
         const channel = echo.private(`event.${eventId}`);
 
         channel
-            .listen('.ParticipantUpdated', (payload: ParticipantUpdatedPayload) => {
+            .listen('ParticipantUpdated', (payload: ParticipantUpdatedPayload) => {
                 console.log('WS: ParticipantUpdated', payload);
                 
                 queryClient.setQueryData(['event', eventId], (oldEvent: Event | undefined) => {
@@ -121,7 +121,7 @@ export const useEventWebSockets = (eventId: number | undefined) => {
                     return newEvent;
                 });
             })
-            .listen('.SquadUpdated', (payload: SquadUpdatedPayload) => {
+            .listen('SquadUpdated', (payload: SquadUpdatedPayload) => {
                 console.log('WS: SquadUpdated', payload);
                 
                 queryClient.setQueryData(['event', eventId], (oldEvent: Event | undefined) => {
@@ -153,7 +153,7 @@ export const useEventWebSockets = (eventId: number | undefined) => {
                     return newEvent;
                 });
             })
-            .listen('.EventUpdated', (payload: EventUpdatedPayload) => {
+            .listen('EventUpdated', (payload: EventUpdatedPayload) => {
                 console.log('WS: EventUpdated', payload);
                 
                 queryClient.setQueryData(['event', eventId], (oldEvent: Event | undefined) => {

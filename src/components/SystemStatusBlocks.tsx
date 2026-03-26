@@ -1,16 +1,26 @@
 import type { FC } from 'react';
 import { useState } from 'react';
 import type { Event, EventUser, Participant, Squad } from '../api/events';
+import { useAuthStore } from '../store/useAuthStore';
 import { SquadParticipantsModal } from './SquadParticipantsModal';
 
 interface SystemStatusBlocksProps {
     event: Event;
     onKick?: (userId: number) => Promise<void>;
+    onDecline?: () => Promise<void>;
+    onMoveUser?: (userId: number, squadId: number | null) => Promise<void>;
     isOfficer?: boolean;
+    isAdmin?: boolean;
 }
 
-export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({ event, onKick, isOfficer }) => {
+export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({ 
+    event, onKick, onDecline, 
+    isOfficer 
+}) => {
+    const { user } = useAuthStore();
     const [viewingSystemGroup, setViewingSystemGroup] = useState<{ squad: Squad, title: string } | null>(null);
+
+    const isUserDeclined = event.declined_users?.some((u: EventUser) => u.id === user?.id);
 
     const mapUserToParticipant = (user: EventUser, status: 'confirmed' | 'declined' | 'unknown'): Participant => ({
         user_id: user.id,
@@ -38,18 +48,20 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({ event, onKick,
 
     const renderBlock = (squad: Squad, title: string, colorClass: string, icon: React.ReactNode) => {
         const count = squad.participants?.length || 0;
+        const isDeclinedBlock = squad.id === -2;
 
         return (
             <div 
-                onClick={() => setViewingSystemGroup({ squad, title })}
-                className="bg-zinc-900 p-6 rounded-[2rem] border border-zinc-800/50 hover:border-zinc-700 transition-all cursor-pointer group relative overflow-hidden"
+                className={`bg-zinc-900 p-6 rounded-[2rem] border transition-all relative overflow-hidden group/sys ${
+                    isDeclinedBlock && isUserDeclined ? 'ring-1 ring-rose-900/50 border-rose-800/50' : 'border-zinc-800/50 hover:border-zinc-700 shadow-lg shadow-zinc-950/20'
+                }`}
             >
                 <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
                     {icon}
                 </div>
                 
                 <div className="flex justify-between items-start mb-6">
-                    <div>
+                    <div className="cursor-pointer flex-1" onClick={() => setViewingSystemGroup({ squad, title })}>
                         <h3 className={`text-lg font-black uppercase italic tracking-tight flex items-center gap-2 ${colorClass}`}>
                             {title}
                         </h3>
@@ -57,9 +69,27 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({ event, onKick,
                             Участников: {count}
                         </p>
                     </div>
-                    <span className={`text-[10px] font-black px-2 py-1 rounded border uppercase tracking-widest ${colorClass} bg-opacity-10 border-opacity-30`}>
-                        System
-                    </span>
+                    
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                        {isDeclinedBlock && !isUserDeclined && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); onDecline?.(); }}
+                                className="h-7 px-3 bg-rose-700 hover:bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest italic rounded-lg transition-all flex items-center justify-center border border-rose-600/50 shadow-lg shadow-rose-900/20"
+                            >
+                                Я не приду
+                            </button>
+                        )}
+                        {isDeclinedBlock && isUserDeclined && (
+                            <span className="text-[8px] font-black uppercase tracking-widest text-rose-500 bg-rose-950/30 px-2 py-1 rounded border border-rose-900/20">
+                                Пропускаю
+                            </span>
+                        )}
+                        {!isDeclinedBlock && (
+                            <span className={`text-[10px] font-black px-2 py-1 rounded border uppercase tracking-widest ${colorClass} bg-opacity-10 border-opacity-30`}>
+                                System
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div className="space-y-2 mb-6">
@@ -67,14 +97,9 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({ event, onKick,
                         <div key={idx} className="flex items-center text-sm p-2 bg-zinc-950/50 rounded-xl border border-zinc-800/30">
                             <div className={`w-1 h-1 rounded-full mr-3 ${colorClass.replace('text-', 'bg-')}`}></div>
                             <div className="flex flex-col min-w-0">
-                                <span className="font-semibold text-xs uppercase tracking-tight text-zinc-100 truncate">
+                                <span className={`font-semibold text-xs uppercase tracking-tight truncate ${p.user_id === user?.id ? 'text-emerald-400 font-black' : 'text-zinc-100'}`}>
                                     {p.family_name}
                                 </span>
-                                {p.global_name && p.family_name !== p.global_name && (
-                                    <span className="text-[9px] text-zinc-500 uppercase tracking-widest truncate">
-                                        @{p.global_name}
-                                    </span>
-                                )}
                             </div>
                         </div>
                     ))}
@@ -109,14 +134,14 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({ event, onKick,
             {renderBlock(
                 pendingSquad, 
                 'Не определились', 
-                'text-amber-600', 
-                <span className="text-4xl font-black italic uppercase tracking-tighter">WAIT</span>
+                'text-amber-500', 
+                <span className="text-4xl font-black italic uppercase tracking-tighter scale-110">WAIT</span>
             )}
             {renderBlock(
                 declinedSquad, 
                 'Пропустят', 
-                'text-rose-800', 
-                <span className="text-4xl font-black italic uppercase tracking-tighter">LIST</span>
+                'text-rose-500', 
+                <span className="text-4xl font-black italic uppercase tracking-tighter scale-110">SKIP</span>
             )}
 
             <SquadParticipantsModal 
