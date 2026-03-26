@@ -4,6 +4,7 @@ import type { Squad, Event, Participant, EventUser } from '../api/events';
 import { useAuthStore } from '../store/useAuthStore';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { SquadParticipantsModal } from './SquadParticipantsModal';
+import { SquadFormModal } from './SquadFormModal';
 
 interface SquadSlotGridProps {
     event: Event;
@@ -28,6 +29,8 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
     const [viewingSquad, setViewingSquad] = useState<Squad | null>(null);
     const [dropTargetId, setDropTargetId] = useState<number | null>(null);
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+    const [isSquadModalOpen, setIsSquadModalOpen] = useState(false);
+    const [editingSquad, setEditingSquad] = useState<Squad | null>(null);
     
     // Sort squads: standard squads first, then system ones
     const regularSquads = event.squads?.filter(s => !s.is_system) || [];
@@ -39,16 +42,21 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
 
     const isUserDeclined = event.declined_users?.some((u: EventUser) => u.id === user?.id);
 
-    const handleSquadAction = (squad: Squad, action: 'rename' | 'limit' | 'delete') => {
+    const handleSquadAction = (squad: Squad, action: 'edit' | 'delete') => {
         setOpenMenuId(null);
-        if (action === 'rename') {
-            const newName = prompt('Новое название отряда:', squad.name);
-            if (newName && newName !== squad.name) onUpdateSquad?.(squad.id, { name: newName });
-        } else if (action === 'limit') {
-            const newLimit = prompt('Новый лимит слотов (0 = без лимита):', squad.limit.toString());
-            if (newLimit !== null) onUpdateSquad?.(squad.id, { limit: parseInt(newLimit) });
+        if (action === 'edit') {
+            setEditingSquad(squad);
+            setIsSquadModalOpen(true);
         } else if (action === 'delete') {
             onDeleteSquad?.(squad.id);
+        }
+    };
+
+    const handleSquadModalSubmit = async (data: { name: string; limit: number }) => {
+        if (editingSquad) {
+            await onUpdateSquad?.(editingSquad.id, data);
+        } else {
+            await onAddSquad?.(data.name, data.limit);
         }
     };
 
@@ -113,8 +121,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                                         
                                         {openMenuId === squad.id && (
                                             <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-in fade-in zoom-in duration-200">
-                                                <button onClick={() => handleSquadAction(squad, 'rename')} className="w-full text-left px-4 py-3 text-[10px] font-black uppercase italic text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors">✏️ Переименовать</button>
-                                                <button onClick={() => handleSquadAction(squad, 'limit')} className="w-full text-left px-4 py-3 text-[10px] font-black uppercase italic text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors">🔢 Изменить лимит</button>
+                                                <button onClick={() => handleSquadAction(squad, 'edit')} className="w-full text-left px-4 py-3 text-[10px] font-black uppercase italic text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors">⚙️ Настроить отряд</button>
                                                 <div className="h-px bg-zinc-800 mx-2 my-1"></div>
                                                 <button onClick={() => handleSquadAction(squad, 'delete')} className="w-full text-left px-4 py-3 text-[10px] font-black uppercase italic text-rose-500 hover:bg-rose-900/20 transition-colors">🗑️ Удалить отряд</button>
                                             </div>
@@ -185,9 +192,8 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
             {isAdmin && (
                 <button 
                     onClick={() => {
-                        const name = prompt('Название нового отряда:', `Отряд ${regularSquads.length + 1}`);
-                        const limit = prompt('Лимит участников (0 = без лимита):', '5');
-                        if (name && limit !== null) onAddSquad?.(name, parseInt(limit));
+                        setEditingSquad(null);
+                        setIsSquadModalOpen(true);
                     }}
                     className="bg-zinc-900/40 p-10 rounded-[2rem] border-2 border-dashed border-zinc-800/50 hover:border-violet-700/50 hover:bg-violet-900/5 transition-all group flex flex-col items-center justify-center gap-4 min-h-[200px]"
                 >
@@ -297,6 +303,13 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
 
             <PlayerProfileModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
             <SquadParticipantsModal squad={viewingSquad} onClose={() => setViewingSquad(null)} onKick={(viewingSquad?.id === -2 || viewingSquad?.is_system) ? undefined : onKick} isOfficer={isOfficer} />
+            
+            <SquadFormModal 
+                isOpen={isSquadModalOpen} 
+                onClose={() => setIsSquadModalOpen(false)} 
+                onSubmit={handleSquadModalSubmit}
+                squad={editingSquad || undefined}
+            />
         </div>
     );
 };

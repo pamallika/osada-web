@@ -46,9 +46,11 @@ interface AuthState {
     user: User | null;
     isInitialLoading: boolean;
     isTMA: boolean;
+    pendingApplicationsCount: number;
     setAuth: (token: string, user?: User) => void;
     setUser: (user: User) => void;
     setInitialLoading: (loading: boolean) => void;
+    setPendingApplicationsCount: (count: number) => void;
     logout: () => void;
 }
 
@@ -59,12 +61,14 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             isInitialLoading: true,
             isTMA: !!(window as any).Telegram?.WebApp?.initData,
+            pendingApplicationsCount: 0,
             setAuth: (token, user) => {
                 localStorage.setItem('siege-token', token);
                 set({ token, user: user ?? null, isInitialLoading: false });
             },
             setUser: (user) => set({ user }),
             setInitialLoading: (isInitialLoading) => set({ isInitialLoading }),
+            setPendingApplicationsCount: (pendingApplicationsCount) => set({ pendingApplicationsCount }),
             logout: () => {
                 localStorage.removeItem('siege-token');
                 set({ token: null, user: null, isInitialLoading: false });

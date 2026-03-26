@@ -4,6 +4,7 @@ import { NavLink, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSyncUser } from '../hooks/useSyncUser';
 import { usePresence } from '../hooks/usePresence';
+import { useUserWebSockets } from '../hooks/useUserWebSockets';
 import { Toaster } from './Toaster';
 
 interface MainLayoutProps {
@@ -11,10 +12,12 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
-    const { user, logout, isTMA } = useAuthStore();
+    const { user, logout, isTMA, pendingApplicationsCount } = useAuthStore();
     const { syncUser } = useSyncUser();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { onlineCount } = usePresence();
+    
+    useUserWebSockets();
 
     const activeMembership = user?.guild_memberships?.find(m => m.status === 'active');
     const activeGuild = activeMembership?.guild;
@@ -24,7 +27,7 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-        )},
+        ), badge: (activeMembership && ['creator', 'admin'].includes(activeMembership.role) && pendingApplicationsCount > 0) ? pendingApplicationsCount : null},
         { to: '/events', label: 'События', icon: (
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -68,13 +71,18 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                                             key={link.to}
                                             to={link.to}
                                             className={({ isActive }) => `
-                                                flex items-center gap-2 px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] italic transition-all
+                                                flex items-center gap-2 px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] italic transition-all relative
                                                 ${isActive 
                                                     ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20' 
                                                     : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'}
                                             `}
                                         >
                                             {link.label}
+                                            {link.badge && (
+                                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-rose-600 text-[8px] font-black text-white rounded-full border-2 border-zinc-950 shadow-lg shadow-rose-900/30 not-italic">
+                                                    {link.badge}
+                                                </span>
+                                            )}
                                         </NavLink>
                                     ))}
                                 </div>
@@ -150,14 +158,21 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                                     to={link.to}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className={({ isActive }) => `
-                                        flex items-center gap-3 p-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] italic transition-all
+                                        flex items-center justify-between p-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] italic transition-all
                                         ${isActive 
                                             ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20' 
                                             : 'text-zinc-500 bg-zinc-950/50 border border-zinc-800/50'}
                                     `}
                                 >
-                                    {link.icon}
-                                    {link.label}
+                                    <div className="flex items-center gap-3">
+                                        {link.icon}
+                                        {link.label}
+                                    </div>
+                                    {link.badge && (
+                                        <span className="min-w-[18px] h-[18px] flex items-center justify-center bg-rose-600 text-[8px] font-black text-white rounded-full border-2 border-zinc-950 not-italic">
+                                            {link.badge}
+                                        </span>
+                                    )}
                                 </NavLink>
                             ))}
                         </div>

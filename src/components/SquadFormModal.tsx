@@ -53,38 +53,38 @@ export const SquadFormModal: FC<SquadFormModalProps> = ({ isOpen, onClose, onSub
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div 
-                className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" 
+                className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm transition-opacity" 
                 onClick={onClose}
             ></div>
 
             {/* Modal Content */}
             <div 
-                className="bg-slate-800 p-8 md:p-10 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-slate-700/50 relative overflow-hidden animate-in fade-in zoom-in duration-300"
+                className="bg-zinc-900 p-8 md:p-10 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-zinc-800/50 relative overflow-hidden animate-in fade-in zoom-in duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Decorative background element */}
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-violet-500/10 rounded-full blur-3xl"></div>
                 
-                <div className="text-center mb-8 relative">
-                    <div className="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-4 border border-indigo-400/20">
-                        <span className="text-2xl">{squad ? '📝' : '➕'}</span>
+                <div className="text-center mb-10 relative">
+                    <div className="w-16 h-16 bg-violet-700 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-violet-900/20 mb-6 border border-violet-500/20 rotate-3">
+                        <span className="text-2xl -rotate-3">{squad ? '⚙️' : '➕'}</span>
                     </div>
-                    <h2 className="text-3xl font-black text-white tracking-tight uppercase italic">
-                        {squad ? 'Правка Отряда' : 'Новый Отряд'}
+                    <h2 className="text-3xl font-black text-white tracking-tight uppercase italic leading-none">
+                        {squad ? 'Настройка' : 'Новый'} <span className="text-violet-500">Отряд</span>
                     </h2>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Настройка тактического подразделения</p>
+                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mt-3 italic">Siege Tactical Configuration</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6 relative">
+                <form onSubmit={handleSubmit} className="space-y-8 relative">
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3">
-                            <span className="text-base">⚠️</span>
+                        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-500 p-5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-4 italic animate-pulse">
+                            <span className="text-xl">⚠️</span>
                             {error}
                         </div>
                     )}
 
-                    <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
+                    <div className="space-y-3">
+                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1 italic">
                             Позывной / Название
                         </label>
                         <input
@@ -92,14 +92,14 @@ export const SquadFormModal: FC<SquadFormModalProps> = ({ isOpen, onClose, onSub
                             required
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl px-6 py-4 text-white font-bold focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-700 shadow-inner"
-                            placeholder="Напр. Первый отряд"
+                            className="w-full bg-zinc-950 border-2 border-zinc-800/50 rounded-2xl px-6 py-4 text-white font-black focus:outline-none focus:border-violet-600 transition-all placeholder:text-zinc-800 shadow-inner uppercase italic"
+                            placeholder="НАПР. ОТРЯД АЛЬФА"
                             autoFocus
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
+                    <div className="space-y-3">
+                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1 italic">
                             Лимит бойцов
                         </label>
                         <input
@@ -108,8 +108,8 @@ export const SquadFormModal: FC<SquadFormModalProps> = ({ isOpen, onClose, onSub
                             min={1}
                             max={100}
                             value={formData.limit}
-                            onChange={(e) => setFormData({ ...formData, limit: parseInt(e.target.value) })}
-                            className="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl px-6 py-4 text-white font-bold focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
+                            onChange={(e) => setFormData({ ...formData, limit: parseInt(e.target.value) || 0 })}
+                            className="w-full bg-zinc-950 border-2 border-zinc-800/50 rounded-2xl px-6 py-4 text-white font-black focus:outline-none focus:border-violet-600 transition-all shadow-inner uppercase italic"
                         />
                     </div>
 
@@ -117,18 +117,25 @@ export const SquadFormModal: FC<SquadFormModalProps> = ({ isOpen, onClose, onSub
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-black py-5 px-6 rounded-2xl transition-all uppercase tracking-widest text-[10px] italic border border-slate-600/50"
+                            className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-black py-5 px-6 rounded-2xl transition-all uppercase tracking-widest text-[10px] italic border border-zinc-700/50"
                         >
                             Отмена
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-black py-5 px-10 rounded-2xl transition-all shadow-lg shadow-indigo-500/20 uppercase tracking-widest text-[10px] italic flex items-center justify-center gap-3"
+                            className="flex-[2] bg-violet-700 hover:bg-violet-600 disabled:opacity-50 text-white font-black py-5 px-10 rounded-2xl transition-all shadow-lg shadow-violet-900/40 uppercase tracking-widest text-[10px] italic flex items-center justify-center gap-3 border border-violet-500/30"
                         >
                             {isLoading ? (
                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            ) : (squad ? 'Обновить' : 'Добавить')}
+                            ) : (
+                                <>
+                                    <span>{squad ? 'Сохранить' : 'Создать'}</span>
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>
