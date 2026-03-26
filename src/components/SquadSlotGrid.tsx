@@ -10,13 +10,16 @@ interface SquadSlotGridProps {
     onJoin: (squadId: number | null) => Promise<void>;
     onDecline?: () => Promise<void>;
     onKick?: (userId: number) => Promise<void>;
+    onMoveUser?: (userId: number, squadId: number | null) => Promise<void>;
     isOfficer?: boolean;
+    isDrafting?: boolean;
 }
 
-export const SquadSlotGrid: FC<SquadSlotGridProps> = ({ event, onJoin, onDecline, onKick, isOfficer }) => {
+export const SquadSlotGrid: FC<SquadSlotGridProps> = ({ event, onJoin, onDecline, onKick, onMoveUser, isOfficer, isDrafting }) => {
     const { user } = useAuthStore();
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const [viewingSquad, setViewingSquad] = useState<Squad | null>(null);
+    const [dropTargetId, setDropTargetId] = useState<number | null>(null);
     
     // Sort squads: system (Reserve) first, then others
     const sortedSquads = [...(event.squads || [])].sort((a: Squad, b: Squad) => {
@@ -43,12 +46,29 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({ event, onJoin, onDecline
                     <div 
                         key={squad.id}
                         onClick={() => setViewingSquad(squad)}
+                        onDragOver={(e) => {
+                            if (!isDrafting) return;
+                            e.preventDefault();
+                            setDropTargetId(squad.id);
+                        }}
+                        onDragLeave={() => setDropTargetId(null)}
+                        onDrop={(e) => {
+                            if (!isDrafting) return;
+                            e.preventDefault();
+                            setDropTargetId(null);
+                            const userId = parseInt(e.dataTransfer.getData('userId') || '0');
+                            if (userId && onMoveUser) {
+                                onMoveUser(userId, squad.id);
+                            }
+                        }}
                         className={`bg-zinc-900 p-6 rounded-[2rem] border transition-all cursor-pointer group/card ${
                             amIInThisSquad 
                             ? 'ring-1 ring-violet-700 border-violet-700/50 bg-violet-900/5 shadow-lg shadow-violet-900/10' 
                             : 'border-zinc-800/50 hover:border-zinc-700'
                         } ${
                             isFull && !amIInThisSquad ? 'opacity-80' : ''
+                        } ${
+                            dropTargetId === squad.id ? 'border-amber-500 bg-amber-900/10 scale-[1.02] shadow-xl shadow-amber-900/20' : ''
                         }`}
                     >
                         <div className="flex justify-between items-start mb-6">
@@ -157,10 +177,27 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({ event, onJoin, onDecline
                         status: 'declined',
                     }))
                 })}
+                onDragOver={(e) => {
+                    if (!isDrafting) return;
+                    e.preventDefault();
+                    setDropTargetId(-2);
+                }}
+                onDragLeave={() => setDropTargetId(null)}
+                onDrop={(e) => {
+                    if (!isDrafting) return;
+                    e.preventDefault();
+                    setDropTargetId(null);
+                    const userId = parseInt(e.dataTransfer.getData('userId') || '0');
+                    if (userId && onMoveUser) {
+                        onMoveUser(userId, null); // Move to declined
+                    }
+                }}
                 className={`bg-zinc-900 p-6 rounded-[2rem] border transition-all cursor-pointer group/card ${
                     isUserDeclined 
                     ? 'ring-1 ring-rose-800 border-rose-800/50 bg-rose-900/5 shadow-lg shadow-rose-900/10' 
                     : 'border-zinc-800/50 hover:border-zinc-700 bg-rose-900/5'
+                } ${
+                    dropTargetId === -2 ? 'border-amber-500 bg-amber-900/10 scale-[1.02] shadow-xl shadow-amber-900/20' : ''
                 }`}
             >
                 <div className="flex justify-between items-start mb-6">

@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSyncUser } from '../hooks/useSyncUser';
+import { usePresence } from '../hooks/usePresence';
+import { Toaster } from './Toaster';
 
 interface MainLayoutProps {
     children: ReactNode;
@@ -12,6 +14,7 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
     const { user, logout, isTMA } = useAuthStore();
     const { syncUser } = useSyncUser();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { onlineCount } = usePresence();
 
     const activeMembership = user?.guild_memberships?.find(m => m.status === 'active');
     const activeGuild = activeMembership?.guild;
@@ -84,9 +87,15 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                                         {activeGuild.logo_url && (
                                             <img src={activeGuild.logo_url} alt="" className="w-5 h-5 rounded-md object-cover" />
                                         )}
-                                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest truncate max-w-[150px]">
+                                        <span className="text-[10px] font-black text-zinc-100 uppercase tracking-widest truncate max-w-[120px]">
                                             {activeGuild.name}
                                         </span>
+                                        <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
+                                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+                                            <span className="text-[9px] font-black text-emerald-500/80 uppercase tracking-tighter italic">
+                                                LIVE: {onlineCount}
+                                            </span>
+                                        </div>
                                     </div>
                                 )}
 
@@ -159,6 +168,7 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
             <main className="flex-1 overflow-y-auto relative">
                 {children}
             </main>
+            <Toaster />
         </div>
     );
 };

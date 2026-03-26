@@ -14,6 +14,8 @@ import { PublishEventModal } from '../components/PublishEventModal';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useEventWebSockets } from '../hooks/useEventWebSockets';
+import { guildApi } from '../api/guilds';
+import { useNotificationStore } from '../store/useNotificationStore';
 
 const EventDetailsPage: FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -24,6 +26,9 @@ const EventDetailsPage: FC = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+    const [isDrafting, setIsDrafting] = useState(false);
+    const [memberSearch, setMemberSearch] = useState('');
+    const { addNotification } = useNotificationStore();
 
     const eventId = parseInt(id || '0');
     
@@ -33,6 +38,12 @@ const EventDetailsPage: FC = () => {
     const activeGuildId = activeGuildMembership?.guild.id;
     const userRole = activeGuildMembership?.role;
     const isOfficer = ['creator', 'admin', 'officer'].includes(userRole || '');
+
+    const { data: guildMembers } = useQuery({
+        queryKey: ['guild-members'],
+        queryFn: () => guildApi.getMembers(),
+        enabled: isDrafting,
+    });
 
     const { data: event, isLoading, error, refetch } = useQuery({
         queryKey: ['event', eventId],
@@ -129,6 +140,23 @@ const EventDetailsPage: FC = () => {
             refetch();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Ошибка при архивации');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleMoveUser = async (userId: number, squadId: number | null) => {
+        setIsProcessing(true);
+        try {
+            await eventsApi.moveParticipant(event.id, userId, squadId);
+            addNotification({
+                title: 'Перемещение',
+                message: 'Участник успешно перемещен',
+                type: 'success'
+            });
+            refetch();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Ошибка при перемещении');
         } finally {
             setIsProcessing(false);
         }
@@ -250,11 +278,76 @@ const EventDetailsPage: FC = () => {
                         >
                             Конструктор
                         </button>
+                        <button
+                            onClick={() => {
+                                setIsDrafting(!isDrafting);
+                                setViewMode('view');
+                            }}
+                            className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] italic transition-all whitespace-nowrap border ${
+                                isDrafting 
+                                ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-900/20' 
+                                : 'bg-zinc-950 border-zinc-800 text-amber-500 hover:border-amber-500/50'
+                            }`}
+                        >
+                            {isDrafting ? '⚡ Идет рассадка' : '🎯 Рассадка (D&D)'}
+                        </button>
                     </div>
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
-                    <div className="lg:col-span-3 space-y-10">
+                    {isDrafting && (
+                        <div className="lg:col-span-1 space-y-6 animate-in slide-in-from-left duration-500">
+                            <div className="bg-zinc-900 p-6 rounded-[2rem] border border-zinc-800/50 sticky top-24">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-[10px] font-black uppercase tracking-widest text-amber-500 italic">Участники Гильдии</h3>
+                                    <span className="text-[10px] font-bold text-zinc-600">{(guildMembers || []).length}</span>
+                                </div>
+                                
+                                <input 
+                                    type="text"
+                                    placeholder="ПОИСК ПО ИМЕНИ..."
+                                    value={memberSearch}
+                                    onChange={(e) => setMemberSearch(e.target.value)}
+                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-[10px] font-bold text-zinc-100 placeholder:text-zinc-700 outline-none focus:border-amber-500 transition-all mb-4 uppercase italic"
+                                />
+
+                                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                    {(guildMembers || [])
+                                        .filter(m => m.user?.profile?.family_name?.toLowerCase().includes(memberSearch.toLowerCase()) || m.user?.profile?.global_name?.toLowerCase().includes(memberSearch.toLowerCase()))
+                                        .map(member => (
+                                            <div 
+                                                key={member.id}
+                                                draggable
+                                                onDragStart={(e) => {
+                                                    e.dataTransfer.setData('userId', member.user?.id.toString() || '');
+                                                    e.dataTransfer.effectAllowed = 'move';
+                                                }}
+                                                className="flex items-center gap-3 p-3 bg-zinc-950/50 rounded-xl border border-zinc-800/50 hover:border-amber-500/50 cursor-grab active:cursor-grabbing group transition-all"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-[10px] font-black text-zinc-500 italic border border-zinc-800 group-hover:text-amber-500 group-hover:border-amber-500/30 transition-all">
+                                                    {member.user?.profile?.family_name?.charAt(0) || '?'}
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-[10px] font-black text-zinc-300 uppercase italic truncate leading-tight group-hover:text-white">
+                                                        {member.user?.profile?.family_name || member.user?.profile?.global_name || 'Участник'}
+                                                    </span>
+                                                    <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-tighter">
+                                                        {member.user?.profile?.char_class || '—'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+
+                                <div className="mt-6 pt-6 border-t border-zinc-800/50">
+                                    <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest leading-relaxed">
+                                        💡 Перетаскивайте участников на карточки отрядов для быстрой рассадки.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <div className={`${isDrafting ? 'lg:col-span-3' : 'lg:col-span-3'} space-y-10`}>
                         {isOfficer && viewMode === 'edit' && !isArchived ? (
                             <SquadBuilder event={event} onUpdate={() => refetch()} />
                         ) : (
@@ -269,7 +362,9 @@ const EventDetailsPage: FC = () => {
                                     onJoin={handleJoin} 
                                     onDecline={handleDecline}
                                     onKick={handleKick}
+                                    onMoveUser={handleMoveUser}
                                     isOfficer={isOfficer && !isArchived}
+                                    isDrafting={isDrafting}
                                 />
                             </div>
                         )}
