@@ -7,6 +7,7 @@ export interface Participant {
     global_name?: string | null;
     char_class: string;
     status: 'confirmed' | 'declined' | 'unknown';
+    verification_status?: 'incomplete' | 'pending' | 'verified' | 'updated';
 }
 
 export interface Squad {
@@ -22,6 +23,7 @@ export interface EventUser {
     profile?: {
         family_name?: string;
         global_name?: string | null;
+        verification_status?: 'incomplete' | 'pending' | 'verified' | 'updated';
         [key: string]: unknown;
     };
 }
@@ -59,7 +61,7 @@ export const eventsApi = {
         });
         return response.data.data;
     },
-    
+
     createEvent: async (data: CreateEventRequest) => {
         const response = await apiClient.post<ApiResponse<Event>>(`events`, data);
         return response.data.data;

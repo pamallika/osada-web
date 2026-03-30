@@ -10,6 +10,7 @@ import EventListPage from './pages/EventListPage';
 import EventDetailsPage from './pages/EventDetailsPage';
 import AuthCallback from './pages/AuthCallback';
 import { Integrations } from './pages/Integrations';
+import VerificationPage from './pages/VerificationPage';
 import { useAuthStore } from './store/useAuthStore';
 import { authApi } from './api/auth';
 import { useSyncUser } from './hooks/useSyncUser';
@@ -36,7 +37,7 @@ function App() {
                 // 1. Theme and Expansion & Synchronous TMA Deep Link Check
                 if (tma) {
                     tma.expand();
-                    
+
                     const startParam = tma.initDataUnsafe?.start_param;
                     if (startParam?.startsWith('event_')) {
                         const eventId = startParam.split('_')[1];
@@ -94,7 +95,7 @@ function App() {
                 </div>
                 <h1 className="text-xl font-black text-zinc-100 uppercase tracking-tighter mb-2">Ошибка авторизации</h1>
                 <p className="text-zinc-400 text-sm max-w-xs">{initError}</p>
-                <button 
+                <button
                     onClick={() => window.location.reload()}
                     className="mt-8 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-bold py-3 px-8 rounded-xl border border-zinc-800 transition-all uppercase tracking-widest text-[10px]"
                 >
@@ -120,7 +121,7 @@ function App() {
                 <Routes>
                     {/* High-priority redirect for TMA deep links - only for root entry */}
                     {tmaRedirectPath && <Route path="/" element={<Navigate to={tmaRedirectPath} replace />} />}
-                    
+
                     {/* Public Routes */}
                     <Route path="/login" element={<GuestGuard><Login /></GuestGuard>} />
                     <Route path="/register" element={<GuestGuard><RegisterPage /></GuestGuard>} />
@@ -139,6 +140,7 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/integrations" element={<Integrations />} />
+                        <Route path="/verifications" element={<VerificationPage />} />
                         <Route path="/events" element={<EventListPage />} />
                         <Route path="/events/:id" element={<EventDetailsPage />} />
                     </Route>

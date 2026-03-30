@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { authApi } from '../api/auth';
-import type { User } from '../api/types';
+import type { User, UserGearMedia } from '../api/types';
 
 export const usePlayerProfile = (userId: number | null) => {
     const [profile, setProfile] = useState<User | null>(null);

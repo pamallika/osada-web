@@ -3,6 +3,7 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { useProfile } from '../hooks/useProfile';
 import { authApi } from '../api/auth';
+import { GearSection } from '../components/GearSection';
 
 const CLASSES = [
     'Warrior', 'Ranger', 'Sorceress', 'Berserker', 'Tamer', 'Musa', 'Maehwa', 'Valkyrie',
@@ -15,7 +16,7 @@ export default function Profile() {
     const { user, setUser } = useAuthStore();
     const location = useLocation() as any;
     const [searchParams] = useSearchParams();
-    
+
     const [accountFormData, setAccountFormData] = React.useState({
         email: user?.email || '',
         current_password: '',
@@ -24,15 +25,15 @@ export default function Profile() {
     });
     const [accountLoading, setAccountLoading] = React.useState(false);
     const [accountErrors, setAccountErrors] = React.useState<Record<string, string[]>>({});
-    
-    const { 
-        formData, 
-        setFormData, 
-        isLoading, 
-        error, 
-        success, 
-        gearScore, 
-        handleChange, 
+
+    const {
+        formData,
+        setFormData,
+        isLoading,
+        error,
+        success,
+        gearScore,
+        handleChange,
         updateProfile,
         setError,
         setSuccess
@@ -130,11 +131,11 @@ export default function Profile() {
             });
             setUser(updatedUser);
             setSuccess('Данные аккаунта обновлены');
-            setAccountFormData(prev => ({ 
-                ...prev, 
+            setAccountFormData(prev => ({
+                ...prev,
                 current_password: '',
-                password: '', 
-                password_confirmation: '' 
+                password: '',
+                password_confirmation: ''
             }));
         } catch (err: any) {
             if (err.response?.data?.errors) {
@@ -202,10 +203,10 @@ export default function Profile() {
                         </div>
                         <div className="w-24 h-24 bg-violet-700/10 rounded-[2rem] mx-auto mb-6 flex items-center justify-center text-violet-400 overflow-hidden border border-violet-700/30 relative group-hover:scale-105 transition-transform">
                             {user?.linked_accounts?.find(acc => acc.avatar)?.avatar ? (
-                                <img 
-                                    src={user.linked_accounts.find(acc => acc.avatar)?.avatar || ''} 
-                                    alt="Avatar" 
-                                    className="w-full h-full object-cover" 
+                                <img
+                                    src={user.linked_accounts.find(acc => acc.avatar)?.avatar || ''}
+                                    alt="Avatar"
+                                    className="w-full h-full object-cover"
                                 />
                             ) : (
                                 <span className="text-4xl font-black uppercase italic">
@@ -229,27 +230,26 @@ export default function Profile() {
                                 {user?.linked_accounts?.map(acc => {
                                     const isDiscord = acc.provider === 'discord';
                                     const isTelegram = acc.provider === 'telegram';
-                                    
+
                                     return (
                                         <div key={acc.provider_id} className="flex items-center gap-3 p-4 bg-zinc-950/50 rounded-xl border border-zinc-800/50 group/item">
-                                            <div className={`w-10 h-10 flex items-center justify-center rounded-lg border overflow-hidden ${
-                                                acc.avatar 
-                                                    ? 'border-zinc-800' 
-                                                    : isDiscord 
+                                            <div className={`w-10 h-10 flex items-center justify-center rounded-lg border overflow-hidden ${acc.avatar
+                                                    ? 'border-zinc-800'
+                                                    : isDiscord
                                                         ? 'bg-[#5865F2]/10 border-[#5865F2]/20 text-[#5865F2]'
                                                         : isTelegram
                                                             ? 'bg-[#229ED9]/10 border-[#229ED9]/20 text-[#229ED9]'
                                                             : 'bg-violet-700/10 border-violet-700/20 text-violet-400'
-                                            }`}>
+                                                }`}>
                                                 {acc.avatar ? (
                                                     <img src={acc.avatar} alt={acc.provider} className="w-full h-full object-cover" />
                                                 ) : isDiscord ? (
                                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.947 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.946 2.419-2.157 2.419z"/>
+                                                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.947 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.946 2.419-2.157 2.419z" />
                                                     </svg>
                                                 ) : isTelegram ? (
                                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M11.944 0C5.352 0 0 5.352 0 11.944c0 6.592 5.352 11.944 11.944 11.944 6.592 0 11.944-5.352 11.944-11.944C23.888 5.352 18.536 0 11.944 0zm5.832 8.328l-2.016 9.48c-.144.648-.528.816-1.08.48l-3.048-2.256-1.464 1.416c-.168.168-.312.312-.648.312l.216-3.12 5.664-5.112c.24-.216-.048-.336-.384-.12l-7 4.416-3.024-.936c-.648-.216-.672-.648.144-.96l11.856-4.56c.552-.216 1.032.12.84 1.272z"/>
+                                                        <path d="M11.944 0C5.352 0 0 5.352 0 11.944c0 6.592 5.352 11.944 11.944 11.944 6.592 0 11.944-5.352 11.944-11.944C23.888 5.352 18.536 0 11.944 0zm5.832 8.328l-2.016 9.48c-.144.648-.528.816-1.08.48l-3.048-2.256-1.464 1.416c-.168.168-.312.312-.648.312l.216-3.12 5.664-5.112c.24-.216-.048-.336-.384-.12l-7 4.416-3.024-.936c-.648-.216-.672-.648.144-.96l11.856-4.56c.552-.216 1.032.12.84 1.272z" />
                                                     </svg>
                                                 ) : (
                                                     <span className="uppercase text-[10px] font-black">{acc.provider.substring(0, 2)}</span>
@@ -261,7 +261,7 @@ export default function Profile() {
                                                     {acc.display_name || acc.username}
                                                 </div>
                                             </div>
-                                            <button 
+                                            <button
                                                 onClick={() => handleUnlink(acc.provider)}
                                                 className="p-2 text-zinc-600 hover:text-rose-500 transition-colors opacity-0 group-hover/item:opacity-100"
                                                 title="Отвязать аккаунт"
@@ -283,13 +283,13 @@ export default function Profile() {
                                 )}
 
                                 {!isTelegramLinked && (
-                                    <button 
+                                    <button
                                         onClick={handleConnectTelegram}
                                         className="w-full flex items-center gap-3 p-4 bg-[#229ED9]/5 hover:bg-[#229ED9]/10 rounded-xl border border-[#229ED9]/20 transition-all group mt-3"
                                     >
                                         <div className="w-10 h-10 flex items-center justify-center bg-[#229ED9]/10 border border-[#229ED9]/20 rounded-lg text-[#229ED9]">
                                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M11.944 0C5.352 0 0 5.352 0 11.944c0 6.592 5.352 11.944 11.944 11.944 6.592 0 11.944-5.352 11.944-11.944C23.888 5.352 18.536 0 11.944 0zm5.832 8.328l-2.016 9.48c-.144.648-.528.816-1.08.48l-3.048-2.256-1.464 1.416c-.168.168-.312.312-.648.312l.216-3.12 5.664-5.112c.24-.216-.048-.336-.384-.12l-7 4.416-3.024-.936c-.648-.216-.672-.648.144-.96l11.856-4.56c.552-.216 1.032.12.84 1.272z"/>
+                                                <path d="M11.944 0C5.352 0 0 5.352 0 11.944c0 6.592 5.352 11.944 11.944 11.944 6.592 0 11.944-5.352 11.944-11.944C23.888 5.352 18.536 0 11.944 0zm5.832 8.328l-2.016 9.48c-.144.648-.528.816-1.08.48l-3.048-2.256-1.464 1.416c-.168.168-.312.312-.648.312l.216-3.12 5.664-5.112c.24-.216-.048-.336-.384-.12l-7 4.416-3.024-.936c-.648-.216-.672-.648.144-.96l11.856-4.56c.552-.216 1.032.12.84 1.272z" />
                                             </svg>
                                         </div>
                                         <div className="text-left">
@@ -300,13 +300,13 @@ export default function Profile() {
                                 )}
 
                                 {!isDiscordLinked && (
-                                    <button 
+                                    <button
                                         onClick={handleConnectDiscord}
                                         className="w-full flex items-center gap-3 p-4 bg-[#5865F2]/5 hover:bg-[#5865F2]/10 rounded-xl border border-[#5865F2]/20 transition-all group mt-3"
                                     >
                                         <div className="w-10 h-10 flex items-center justify-center bg-[#5865F2]/10 border border-[#5865F2]/20 rounded-lg text-[#5865F2]">
                                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.947 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.946 2.419-2.157 2.419z"/>
+                                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.947 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.946 2.419-2.157 2.419z" />
                                             </svg>
                                         </div>
                                         <div className="text-left">
@@ -460,10 +460,15 @@ export default function Profile() {
                             </div>
                         </form>
 
+                        {/* Gear Section */}
+                        <div className="mt-16 pt-10 border-t border-zinc-800/50">
+                            <GearSection />
+                        </div>
+
                         {/* Account Settings Section */}
                         <div className="mt-16 pt-10 border-t border-zinc-800/50">
                             <h2 className="text-2xl font-black text-zinc-100 mb-8 uppercase italic tracking-tight">Настройки аккаунта</h2>
-                            
+
                             <form onSubmit={handleAccountSubmit} className="space-y-8">
                                 <div className="space-y-2">
                                     <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Email</label>
@@ -528,7 +533,7 @@ export default function Profile() {
                                             ))}
                                         </div>
                                     </div>
-                                    
+
                                     <div className="p-4 bg-zinc-950/50 border border-zinc-800 rounded-xl">
                                         <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.1em] leading-relaxed">
                                             <span className="text-violet-500">Требования к паролю:</span><br />

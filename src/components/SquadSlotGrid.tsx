@@ -19,10 +19,10 @@ interface SquadSlotGridProps {
     isAdmin?: boolean;
 }
 
-export const SquadSlotGrid: FC<SquadSlotGridProps> = ({ 
-    event, onJoin, onKick, onDecline, onMoveUser, 
+export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
+    event, onJoin, onKick, onDecline, onMoveUser,
     onAddSquad, onUpdateSquad, onDeleteSquad,
-    isOfficer, isAdmin 
+    isOfficer, isAdmin
 }) => {
     const { user } = useAuthStore();
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
@@ -31,7 +31,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
     const [isSquadModalOpen, setIsSquadModalOpen] = useState(false);
     const [editingSquad, setEditingSquad] = useState<Squad | null>(null);
-    
+
     // Sort squads: standard squads first, then system ones
     const regularSquads = event.squads?.filter(s => !s.is_system) || [];
     const systemSquads = event.squads?.filter(s => s.is_system) || [];
@@ -69,7 +69,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                 const canJoin = !amIInThisSquad && !isFull && event.status === 'published';
 
                 return (
-                    <div 
+                    <div
                         key={squad.id}
                         onDragOver={(e) => {
                             if (!isAdmin) return;
@@ -86,13 +86,11 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                                 onMoveUser(userId, squad.id);
                             }
                         }}
-                        className={`bg-zinc-900 p-6 rounded-[2rem] border transition-all relative group/card ${
-                            amIInThisSquad 
-                            ? 'ring-1 ring-violet-700 border-violet-700/50 bg-violet-900/5 shadow-lg shadow-violet-900/10' 
-                            : 'border-zinc-800/50'
-                        } ${
-                            dropTargetId === squad.id ? 'border-amber-500 bg-amber-900/10 scale-[1.02] shadow-xl shadow-amber-900/20' : ''
-                        }`}
+                        className={`bg-zinc-900 p-6 rounded-[2rem] border transition-all relative group/card ${amIInThisSquad
+                                ? 'ring-1 ring-violet-700 border-violet-700/50 bg-violet-900/5 shadow-lg shadow-violet-900/10'
+                                : 'border-zinc-800/50'
+                            } ${dropTargetId === squad.id ? 'border-amber-500 bg-amber-900/10 scale-[1.02] shadow-xl shadow-amber-900/20' : ''
+                            }`}
                     >
                         <div className="flex justify-between items-start mb-6">
                             <div className="min-w-0 cursor-pointer flex-1" onClick={() => setViewingSquad(squad)}>
@@ -103,11 +101,11 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                                     Слотов: {squad.participants?.length || 0} / {isUnlimited ? '∞' : squad.limit}
                                 </p>
                             </div>
-                            
+
                             <div className="flex flex-col items-end gap-2 shrink-0">
                                 {isAdmin && (
                                     <div className="relative">
-                                        <button 
+                                        <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setOpenMenuId(openMenuId === squad.id ? null : squad.id);
@@ -118,7 +116,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                             </svg>
                                         </button>
-                                        
+
                                         {openMenuId === squad.id && (
                                             <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-in fade-in zoom-in duration-200">
                                                 <button onClick={() => handleSquadAction(squad, 'edit')} className="w-full text-left px-4 py-3 text-[10px] font-black uppercase italic text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors">⚙️ Настроить отряд</button>
@@ -135,7 +133,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                                     </span>
                                 )}
                                 {canJoin && (
-                                    <button 
+                                    <button
                                         onClick={(e) => { e.stopPropagation(); onJoin(squad.id); }}
                                         className="h-7 px-3 bg-violet-700 hover:bg-violet-600 text-white text-[9px] font-black uppercase tracking-widest italic rounded-lg border border-violet-600/50 transition-all flex items-center justify-center"
                                     >
@@ -147,8 +145,8 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
 
                         <div className="space-y-1.5 mb-6">
                             {squad.participants?.map((p: Participant, idx: number) => (
-                                <div 
-                                    key={idx} 
+                                <div
+                                    key={idx}
                                     draggable={isAdmin}
                                     onDragStart={(e) => {
                                         if (!isAdmin) return;
@@ -159,8 +157,16 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                                     className={`flex items-center text-sm p-1.5 bg-zinc-950/50 rounded-xl border border-zinc-800/30 group/p cursor-pointer hover:border-violet-700/50 transition-all ${isAdmin ? 'cursor-grab active:cursor-grabbing' : ''}`}
                                 >
                                     <div className={`w-1 h-1 rounded-full mr-3 ${p.user_id === user?.id ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-zinc-700'}`}></div>
-                                    <span className={`font-semibold text-[11px] uppercase tracking-tight truncate flex-1 ${p.user_id === user?.id ? 'text-emerald-400' : 'text-zinc-100 group-hover/p:text-violet-400 transition-colors'}`}>
+                                    <span className={`font-semibold text-[11px] uppercase tracking-tight truncate flex-1 flex items-center gap-1.5 ${p.user_id === user?.id ? 'text-emerald-400' : 'text-zinc-100 group-hover/p:text-violet-400 transition-colors'}`}>
                                         {p.family_name || p.global_name || 'Участник'}
+                                        {p.verification_status === 'verified' && (
+                                            <svg className="w-2.5 h-2.5 text-emerald-500 shadow-emerald-500/50" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        )}
+                                        {(p.verification_status === 'pending' || p.verification_status === 'updated') && (
+                                            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(245,158,11,0.5)]"></div>
+                                        )}
                                     </span>
                                     {p.char_class && (
                                         <span className="text-[7px] text-zinc-600 font-black uppercase tracking-widest bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800/50 shrink-0">
@@ -190,7 +196,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
 
             {/* Кнопка создания отряда (Plus Card) */}
             {isAdmin && (
-                <button 
+                <button
                     onClick={() => {
                         setEditingSquad(null);
                         setIsSquadModalOpen(true);
@@ -208,9 +214,9 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
 
             {/* Системные отряды (Запас и т.д.) */}
             {systemSquads.map((squad: Squad) => {
-                 const amIInThisSquad = isUserInSquad(squad);
-                 return (
-                    <div 
+                const amIInThisSquad = isUserInSquad(squad);
+                return (
+                    <div
                         key={squad.id}
                         onDragOver={(e) => { if (isAdmin) { e.preventDefault(); setDropTargetId(squad.id); } }}
                         onDragLeave={() => setDropTargetId(null)}
@@ -223,7 +229,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                         }}
                         className={`bg-zinc-900 p-6 rounded-[2rem] border transition-all relative group/card ${amIInThisSquad ? 'ring-1 ring-violet-700 border-violet-700/50 bg-violet-900/5' : 'border-zinc-800/50'} ${dropTargetId === squad.id ? 'border-amber-500 bg-amber-900/10 scale-[1.02]' : ''}`}
                     >
-                         <div className="flex justify-between items-start mb-6">
+                        <div className="flex justify-between items-start mb-6">
                             <div className="min-w-0 cursor-pointer flex-1" onClick={() => setViewingSquad(squad)}>
                                 <h3 className="text-lg font-black text-zinc-100 uppercase italic tracking-tight flex items-center gap-2 truncate">
                                     {squad.name}
@@ -236,11 +242,11 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                         </div>
                         <div className="space-y-1.5 mb-6">
                             {squad.participants?.slice(0, 5).map((p: Participant, idx: number) => (
-                                <div key={idx} draggable={isAdmin} onDragStart={(e) => { if(isAdmin){e.dataTransfer.setData('userId', p.user_id.toString()); e.dataTransfer.effectAllowed='move';}}} 
+                                <div key={idx} draggable={isAdmin} onDragStart={(e) => { if (isAdmin) { e.dataTransfer.setData('userId', p.user_id.toString()); e.dataTransfer.effectAllowed = 'move'; } }}
                                     onClick={(e) => { e.stopPropagation(); setSelectedUserId(p.user_id); }}
                                     className={`flex items-center text-sm p-1.5 bg-zinc-950/50 rounded-xl border border-zinc-800/30 group/p cursor-pointer hover:border-violet-700/50 transition-all ${isAdmin ? 'cursor-grab active:cursor-grabbing' : ''}`}>
-                                     <div className={`w-1 h-1 rounded-full mr-3 ${p.user_id === user?.id ? 'bg-emerald-500' : 'bg-zinc-700'}`}></div>
-                                     <span className="text-[11px] font-bold uppercase truncate text-zinc-400 flex-1">{p.family_name || 'Участник'}</span>
+                                    <div className={`w-1 h-1 rounded-full mr-3 ${p.user_id === user?.id ? 'bg-emerald-500' : 'bg-zinc-700'}`}></div>
+                                    <span className="text-[11px] font-bold uppercase truncate text-zinc-400 flex-1">{p.family_name || 'Участник'}</span>
                                 </div>
                             ))}
                             {squad.participants && squad.participants.length > 5 && (
@@ -254,21 +260,21 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                             <svg className="w-4 h-4 text-zinc-700 group-hover:text-violet-500 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                         </div>
                     </div>
-                 );
+                );
             })}
 
             {/* Блок ПРОПУСТЯТ */}
-            <div 
+            <div
                 className={`bg-rose-900/5 p-6 rounded-[2rem] border transition-all relative group/card ${isUserDeclined ? 'ring-1 ring-rose-800 border-rose-800/50' : 'border-zinc-800/50'}`}
             >
-                <div className="flex justify-between items-start mb-6 cursor-pointer" onClick={() => setViewingSquad({ id: -2, name: 'Пропустят', limit: 0, is_system: true, participants: (event.declined_users || []).map(u => ({ user_id: u.id, family_name: u.profile?.family_name || u.profile?.global_name || 'Участник', global_name: u.profile?.global_name || null, char_class: (u.profile as any)?.char_class || 'Unknown', status: 'declined'}))})}>
+                <div className="flex justify-between items-start mb-6 cursor-pointer" onClick={() => setViewingSquad({ id: -2, name: 'Пропустят', limit: 0, is_system: true, participants: (event.declined_users || []).map(u => ({ user_id: u.id, family_name: u.profile?.family_name || u.profile?.global_name || 'Участник', global_name: u.profile?.global_name || null, char_class: (u.profile as any)?.char_class || 'Unknown', status: 'declined' })) })}>
                     <div className="min-w-0 flex-1">
                         <h3 className="text-lg font-black text-zinc-100 uppercase italic tracking-tight">Пропустят</h3>
                         <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Всего: {event.declined_users?.length || 0}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2 shrink-0">
                         {!isUserDeclined && (
-                            <button 
+                            <button
                                 onClick={(e) => { e.stopPropagation(); onDecline?.(); }}
                                 className="h-7 px-3 bg-rose-700 hover:bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest italic rounded-lg transition-all flex items-center justify-center border border-rose-600/50 shadow-lg shadow-rose-900/20"
                             >
@@ -295,7 +301,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                         </div>
                     )}
                 </div>
-                <div className="pt-4 border-t border-rose-800/20 flex justify-between items-center cursor-pointer" onClick={() => setViewingSquad({ id: -2, name: 'Пропустят', limit: 0, is_system: true, participants: (event.declined_users || []).map(u => ({ user_id: u.id, family_name: u.profile?.family_name || u.profile?.global_name || 'Участник', global_name: u.profile?.global_name || null, char_class: (u.profile as any)?.char_class || 'Unknown', status: 'declined'}) ) })}>
+                <div className="pt-4 border-t border-rose-800/20 flex justify-between items-center cursor-pointer" onClick={() => setViewingSquad({ id: -2, name: 'Пропустят', limit: 0, is_system: true, participants: (event.declined_users || []).map(u => ({ user_id: u.id, family_name: u.profile?.family_name || u.profile?.global_name || 'Участник', global_name: u.profile?.global_name || null, char_class: (u.profile as any)?.char_class || 'Unknown', status: 'declined' })) })}>
                     <span className="text-[10px] font-black text-rose-800 uppercase tracking-widest italic group-hover/card:text-rose-600 transition-colors">Список</span>
                     <svg className="w-4 h-4 text-rose-900 group-hover:text-rose-600 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </div>
@@ -303,10 +309,10 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
 
             <PlayerProfileModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
             <SquadParticipantsModal squad={viewingSquad} onClose={() => setViewingSquad(null)} onKick={(viewingSquad?.id === -2 || viewingSquad?.is_system) ? undefined : onKick} isOfficer={isOfficer} />
-            
-            <SquadFormModal 
-                isOpen={isSquadModalOpen} 
-                onClose={() => setIsSquadModalOpen(false)} 
+
+            <SquadFormModal
+                isOpen={isSquadModalOpen}
+                onClose={() => setIsSquadModalOpen(false)}
                 onSubmit={handleSquadModalSubmit}
                 squad={editingSquad || undefined}
             />

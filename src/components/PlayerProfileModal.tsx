@@ -7,7 +7,7 @@ interface PlayerProfileModalProps {
 }
 
 export const PlayerProfileModal: FC<PlayerProfileModalProps> = ({ userId, onClose }) => {
-    const { profile, isLoading, error } = usePlayerProfile(userId);
+    const { profile, media, isLoading, error } = usePlayerProfile(userId);
 
     if (!userId) return null;
 
@@ -86,7 +86,7 @@ export const PlayerProfileModal: FC<PlayerProfileModalProps> = ({ userId, onClos
                         </div>
 
                         {/* Stats Section */}
-                        <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800/50 shadow-xl mb-8">
+                        <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800/50 shadow-xl mb-6">
                             <div className="flex justify-between items-end mb-6">
                                 <div>
                                     <span className="text-zinc-500 text-[8px] font-black uppercase tracking-widest italic block mb-1">Level / Class</span>
@@ -115,6 +115,23 @@ export const PlayerProfileModal: FC<PlayerProfileModalProps> = ({ userId, onClos
                                 </div>
                             </div>
                         </div>
+
+                        {/* Media Section */}
+                        {media && media.length > 0 && (
+                            <div className="mb-6 space-y-3">
+                                <h4 className="text-[9px] font-black text-zinc-500 uppercase tracking-widest italic ml-1">Альбом Экипировки</h4>
+                                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                                    {media.map(m => (
+                                        <div key={m.id} className="aspect-video bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 relative group/img">
+                                            <img src={m.url} alt={m.label || 'Gear'} className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500" />
+                                            <div className="absolute bottom-1 left-1.5 px-1.5 py-0.5 bg-zinc-950/80 backdrop-blur-sm rounded text-[6px] font-black text-zinc-400 uppercase tracking-widest">
+                                                {m.label}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         <button 
                             onClick={onClose}

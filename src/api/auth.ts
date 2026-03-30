@@ -1,14 +1,7 @@
 import { apiClient } from './client';
-import type { ApiResponse, User } from './types';
+import type { ApiResponse, User, UserGearMedia, GuildMembership, UserProfile } from './types';
 
-export type ProfileData = {
-    family_name: string;
-    global_name?: string | null;
-    char_class?: string | null;
-    attack?: number | null;
-    awakening_attack?: number | null;
-    defense?: number | null;
-}
+export type ProfileData = Partial<UserProfile>;
 
 interface AuthResponse {
     token: string;
@@ -29,11 +22,56 @@ export const authApi = {
         return data.data;
     },
 
-    updateAccount: async (accountData: { 
-        email?: string; 
-        password?: string; 
-        current_password?: string; 
-        password_confirmation?: string; 
+    getGear: async () => {
+        const { data } = await apiClient.get<ApiResponse<{ profile: UserProfile, media: UserGearMedia[] }>>('auth/gear');
+        return data.data;
+    },
+
+    uploadGearMedia: async (file: File, label: string) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('label', label);
+        const { data } = await apiClient.post<ApiResponse<UserGearMedia>>('auth/gear/media', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return data.data;
+    },
+
+    deleteGearMedia: async (id: number) => {
+        const { data } = await apiClient.post<ApiResponse<null>>(`auth/gear/media/${id}`, { _method: 'DELETE' });
+        return data.data;
+    },
+
+    submitVerification: async () => {
+        const { data } = await apiClient.post<ApiResponse<GuildMembership>>('guilds/my/verification/submit');
+        return data.data;
+    },
+
+    getVerifications: async () => {
+        const { data } = await apiClient.get<ApiResponse<GuildMembership[]>>('guilds/my/verifications');
+        return data.data;
+    },
+
+    getVerificationDetails: async (userId: number) => {
+        const { data } = await apiClient.get<ApiResponse<{ membership: GuildMembership, profile: UserProfile, media: UserGearMedia[] }>>(`guilds/my/verifications/${userId}`);
+        return data.data;
+    },
+
+    approveVerification: async (userId: number) => {
+        const { data } = await apiClient.post<ApiResponse<GuildMembership>>(`guilds/my/verifications/${userId}/approve`);
+        return data.data;
+    },
+
+    rejectVerification: async (userId: number) => {
+        const { data } = await apiClient.post<ApiResponse<GuildMembership>>(`guilds/my/verifications/${userId}/reject`);
+        return data.data;
+    },
+
+    updateAccount: async (accountData: {
+        email?: string;
+        password?: string;
+        current_password?: string;
+        password_confirmation?: string;
     }) => {
         const { data } = await apiClient.post<ApiResponse<User>>('auth/account', {
             ...accountData,
@@ -51,7 +89,7 @@ export const authApi = {
 
     login: async (credentials: Record<string, string>) => {
         const { data } = await apiClient.post<ApiResponse<AuthResponse>>('auth/login', credentials);
-        return data.data; 
+        return data.data;
     },
 
     verifyTelegramTMA: async (payload: { initData: string }) => {
@@ -71,7 +109,7 @@ export const authApi = {
 
     register: async (credentials: Record<string, string>) => {
         const { data } = await apiClient.post<ApiResponse<AuthResponse>>('auth/register', credentials);
-        return data.data; 
+        return data.data;
     },
 
     logout: async () => {
