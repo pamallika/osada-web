@@ -1,6 +1,9 @@
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMemberDashboard } from '../hooks/useDashboard';
+import { useAuthStore } from '../store/useAuthStore';
+import { useNotificationStore } from '../store/useNotificationStore';
+import { guildApi } from '../api/guilds';
 import { EventCard } from './EventCard';
 import { Skeleton, SkeletonCard } from './Skeleton';
 import { format } from 'date-fns';
@@ -8,14 +11,96 @@ import { ru } from 'date-fns/locale';
 
 export const MemberDashboardView: FC = () => {
     const navigate = useNavigate();
-    const { data: dashboard, isLoading, error } = useMemberDashboard();
+    const { user, setUser } = useAuthStore();
+    const { addNotification } = useNotificationStore();
+    const { data: dashboard, isLoading, error, refetch } = useMemberDashboard();
+
     const [copySuccess, setCopySuccess] = useState(false);
+    const [isEditingInvite, setIsEditingInvite] = useState(false);
+    const [editInviteSlug, setEditInviteSlug] = useState('');
+    const [isSavingInvite, setIsSavingInvite] = useState(false);
 
     const handleCopyInvite = (slug: string) => {
         const fullUrl = `${window.location.origin}/invite/${slug}`;
         navigator.clipboard.writeText(fullUrl);
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
+    };
+
+    const handleEditInvite = () => {
+        setEditInviteSlug(dashboard?.guild?.invite_slug || '');
+        setIsEditingInvite(true);
+    };
+
+    const handleSaveInvite = async () => {
+        if (!editInviteSlug || editInviteSlug.length < 3 || editInviteSlug.length > 32) {
+            addNotification({
+                title: 'Ошибка валидации',
+                message: 'Ссылка должна быть от 3 до 32 символов',
+                type: 'error'
+            });
+            return;
+        }
+
+        const validSlug = /^[a-z0-9_-]+$/i.test(editInviteSlug);
+        if (!validSlug) {
+            addNotification({
+                title: 'Ошибка валидации',
+                message: 'Только латиница, цифры, тире и подчеркивание',
+                type: 'error'
+            });
+            return;
+        }
+
+        setIsSavingInvite(true);
+        try {
+            const updatedGuild = await guildApi.updateInviteSlug(editInviteSlug.toLowerCase());
+
+            // Update dashboard
+            await refetch();
+
+            // Update global store
+            if (user && user.guild_memberships) {
+                const updatedMemberships = user.guild_memberships.map(m => {
+                    if (m.guild.id === updatedGuild.id) {
+                        return { ...m, guild: { ...m.guild, invite_slug: updatedGuild.invite_slug } };
+                    }
+                    return m;
+                });
+                setUser({ ...user, guild_memberships: updatedMemberships });
+            }
+
+            addNotification({
+                title: 'Успешно',
+                message: 'Инвайт-ссылка обновлена',
+                type: 'success'
+            });
+            setIsEditingInvite(false);
+        } catch (err: any) {
+            const status = err.response?.status;
+            if (status === 422) {
+                addNotification({
+                    title: 'Ошибка',
+                    message: 'Такая ссылка уже используется другой гильдией',
+                    type: 'error'
+                });
+            } else if (status === 403) {
+                addNotification({
+                    title: 'Доступ запрещен',
+                    message: 'У вас нет прав для изменения ссылки',
+                    type: 'error'
+                });
+                setIsEditingInvite(false);
+            } else {
+                addNotification({
+                    title: 'Ошибка',
+                    message: 'Не удалось обновить ссылку',
+                    type: 'error'
+                });
+            }
+        } finally {
+            setIsSavingInvite(false);
+        }
     };
 
     if (isLoading) {
@@ -65,9 +150,9 @@ export const MemberDashboardView: FC = () => {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     {guild?.logo_url ? (
-                        <img 
-                            src={guild.logo_url} 
-                            alt={guild.name} 
+                        <img
+                            src={guild.logo_url}
+                            alt={guild.name}
                             className="w-12 h-12 rounded-2xl border border-zinc-800/50 object-cover shadow-2xl shadow-zinc-950"
                         />
                     ) : (
@@ -108,7 +193,7 @@ export const MemberDashboardView: FC = () => {
 
                 {/* Upcoming Event */}
                 {next_event ? (
-                    <div 
+                    <div
                         onClick={() => navigate(`/events/${next_event.id}`)}
                         className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800/50 relative overflow-hidden group cursor-pointer transition-all hover:border-violet-700/50 shadow-lg shadow-zinc-950/20 active:scale-[0.98] min-h-[160px]"
                     >
@@ -139,43 +224,91 @@ export const MemberDashboardView: FC = () => {
                     </div>
                 ) : (
                     <div className="bg-zinc-900/30 p-8 rounded-[2rem] border border-zinc-800/30 border-dashed flex flex-col items-center justify-center text-center opacity-60 min-h-[160px]">
-                         <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] italic">Активных записей нет</span>
-                         <p className="text-[9px] font-black text-zinc-700 uppercase tracking-widest mt-2 leading-relaxed">Выберите событие из списка ниже,<br/>чтобы подать заявку</p>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] italic">Активных записей нет</span>
+                        <p className="text-[9px] font-black text-zinc-700 uppercase tracking-widest mt-2 leading-relaxed">Выберите событие из списка ниже,<br />чтобы подать заявку</p>
                     </div>
                 )}
-                
+
                 {/* Invite Card */}
                 <div className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800/50 relative overflow-hidden group shadow-lg shadow-zinc-950/20 min-h-[160px] flex flex-col justify-between">
                     <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
                         <span className="text-7xl font-black italic uppercase tracking-tighter text-zinc-100">INVITE</span>
                     </div>
-                    <div>
-                        <span className="text-[10px] font-black text-violet-500 uppercase tracking-[0.3em] italic">Пригласительная Ссылка</span>
-                        <h2 className="text-xl font-black mt-2 text-zinc-100 uppercase italic tracking-tighter leading-tight">
-                            Вступить в {guild?.name || 'Гильдию'}
-                        </h2>
-                    </div>
-                    
-                    <div className="mt-6 flex flex-col gap-2 relative z-10">
-                        <div className="bg-zinc-950/50 border border-zinc-800 p-3 rounded-xl flex items-center justify-between">
-                            <span className="text-zinc-400 font-mono text-xs truncate max-w-[150px]">
-                                {guild?.invite_slug ? `.../invite/${guild.invite_slug}` : 'Нет ссылки'}
-                            </span>
-                            <button 
-                                onClick={() => {
-                                    if (guild?.invite_slug) {
-                                        handleCopyInvite(guild.invite_slug);
-                                    }
-                                }}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors active:scale-95 ${
-                                    copySuccess 
-                                        ? 'bg-emerald-900/20 text-emerald-400 hover:text-emerald-300'
-                                        : 'bg-violet-900/20 text-violet-400 hover:text-violet-300'
-                                }`}
-                            >
-                                {copySuccess ? 'Скопировано ✓' : 'Копировать'}
-                            </button>
+                    <div className="flex justify-between items-start relative z-10">
+                        <div>
+                            <span className="text-[10px] font-black text-violet-500 uppercase tracking-[0.3em] italic">Пригласительная Ссылка</span>
+                            <h2 className="text-xl font-black mt-2 text-zinc-100 uppercase italic tracking-tighter leading-tight">
+                                Вступить в {guild?.name || 'Гильдию'}
+                            </h2>
                         </div>
+                        {user?.guild_memberships?.find(m => m.guild.id === guild?.id)?.role === 'creator' && !isEditingInvite && (
+                            <button
+                                onClick={handleEditInvite}
+                                className="p-2 bg-zinc-950 hover:bg-zinc-800 text-zinc-500 hover:text-violet-400 rounded-lg border border-zinc-800 transition-all opacity-0 group-hover:opacity-100"
+                                title="Изменить ссылку"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="mt-6 flex flex-col gap-2 relative z-10">
+                        {isEditingInvite ? (
+                            <div className="space-y-3 animate-in zoom-in-95 duration-200">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={editInviteSlug}
+                                        onChange={(e) => setEditInviteSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
+                                        className="w-full bg-zinc-950/80 border border-violet-900/50 p-3 rounded-xl text-zinc-100 font-mono text-xs focus:border-violet-700 focus:ring-1 focus:ring-violet-700 transition-all outline-none"
+                                        placeholder="Введите slug..."
+                                        autoFocus
+                                    />
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black uppercase text-zinc-600 tracking-widest">SLUG</div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleSaveInvite}
+                                        disabled={isSavingInvite}
+                                        className="flex-1 bg-violet-700 hover:bg-violet-600 disabled:bg-violet-900/40 text-white text-[10px] font-black uppercase tracking-widest italic py-3 rounded-xl transition-all shadow-lg shadow-violet-900/20 flex items-center justify-center gap-2"
+                                    >
+                                        {isSavingInvite ? (
+                                            <div className="w-3 h-3 border-2 border-white/50 border-t-white rounded-full animate-spin"></div>
+                                        ) : (
+                                            'Сохранить'
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={() => setIsEditingInvite(false)}
+                                        disabled={isSavingInvite}
+                                        className="px-6 bg-zinc-950 hover:bg-zinc-800 text-zinc-500 text-[10px] font-black uppercase tracking-widest italic py-3 rounded-xl border border-zinc-800 transition-all"
+                                    >
+                                        Отмена
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-zinc-950/50 border border-zinc-800 p-3 rounded-xl flex items-center justify-between group/input">
+                                <span className="text-zinc-400 font-mono text-xs truncate max-w-[150px]">
+                                    {guild?.invite_slug ? `.../invite/${guild.invite_slug}` : 'Нет ссылки'}
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        if (guild?.invite_slug) {
+                                            handleCopyInvite(guild.invite_slug);
+                                        }
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors active:scale-95 ${copySuccess
+                                            ? 'bg-emerald-900/20 text-emerald-400 hover:text-emerald-300'
+                                            : 'bg-violet-900/20 text-violet-400 hover:text-violet-300'
+                                        }`}
+                                >
+                                    {copySuccess ? 'Скопировано ✓' : 'Копировать'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -192,9 +325,9 @@ export const MemberDashboardView: FC = () => {
                 {open_events.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {open_events.map(event => (
-                            <EventCard 
-                                key={event.id} 
-                                event={event} 
+                            <EventCard
+                                key={event.id}
+                                event={event}
                                 onClick={() => navigate(`/events/${event.id}`)}
                             />
                         ))}
