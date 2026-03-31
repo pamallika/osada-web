@@ -1,4 +1,4 @@
-export interface ApiResponse<T> {
+export interface ApiResponse<T> { // v1.1
     status: 'success' | 'error';
     data: T;
     message?: string;
@@ -76,4 +76,19 @@ export interface GuildIntegration {
     platform_id: string;
     platform_title: string;
     settings: any;
+}
+
+export interface Post {
+    id: number;
+    guild_id: number;
+    user_id: number;
+    title: string;
+    content: string;
+    author?: User | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PostMedia {
+    url: string;
 }

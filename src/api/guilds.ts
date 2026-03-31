@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { ApiResponse, User } from './types';
+import type { ApiResponse, User, Post } from './types';
 
 export interface Guild {
     id: number;
@@ -126,6 +126,41 @@ export const guildApi = {
         const formData = new FormData();
         formData.append('logo', file);
         const { data } = await apiClient.post<ApiResponse<Guild>>('guilds/my/logo', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return data.data;
+    },
+
+    getPosts: async () => {
+        const { data } = await apiClient.get<ApiResponse<Post[]>>('guilds/my/posts');
+        return data.data;
+    },
+
+    getPost: async (id: number) => {
+        const { data } = await apiClient.get<ApiResponse<Post>>(`guilds/my/posts/${id}`);
+        return data.data;
+    },
+
+    createPost: async (payload: { title: string, content: string }) => {
+        const { data } = await apiClient.post<ApiResponse<Post>>('guilds/my/posts', payload);
+        return data.data;
+    },
+
+    updatePost: async (id: number, payload: { title: string, content: string }) => {
+        const { data } = await apiClient.put<ApiResponse<Post>>(`guilds/my/posts/${id}`, payload);
+        return data.data;
+    },
+
+    deletePost: async (id: number) => {
+        await apiClient.delete(`guilds/my/posts/${id}`);
+    },
+
+    uploadPostMedia: async (file: File) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        const { data } = await apiClient.post<ApiResponse<{ url: string }>>('guilds/my/posts/media', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }

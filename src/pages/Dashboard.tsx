@@ -9,12 +9,13 @@ import { GuildApplicationsList } from '../components/GuildApplicationsList';
 import { GuildMembersTab } from '../components/GuildMembersTab';
 import { MemberDashboardView } from '../components/MemberDashboardView';
 import { AnalyticsDashboardView } from '../components/AnalyticsDashboardView';
+import { KnowledgeBaseView } from '../components/KnowledgeBaseView';
 
 export default function Dashboard() {
     const { user, setUser } = useAuthStore();
     const navigate = useNavigate();
 
-    const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'applications' | 'analytics'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'knowledge' | 'applications' | 'analytics' >('overview');
     const [leaveLoading, setLeaveLoading] = useState(false);
 
     // Invite Context Recovery
@@ -100,6 +101,14 @@ export default function Dashboard() {
                         >
                             Состав
                         </button>
+                        <button
+                            onClick={() => setActiveTab('knowledge')}
+                            className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] italic transition-all ${
+                                activeTab === 'knowledge' ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/30'
+                            }`}
+                        >
+                            База знаний
+                        </button>
                         {isManagement && (
                             <button
                                 onClick={() => setActiveTab('analytics')}
@@ -149,6 +158,10 @@ export default function Dashboard() {
                         </div>
                         <GuildMembersTab currentUserId={user!.id} currentUserRole={activeMembership.role as any} />
                     </div>
+                )}
+
+                {activeTab === 'knowledge' && (
+                    <KnowledgeBaseView isAdmin={!!isManagement} />
                 )}
 
                 {activeTab === 'applications' && canSeeApplications && (
