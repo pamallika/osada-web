@@ -23,9 +23,6 @@ export interface UserProfile {
     awakening_attack: number;
     defense: number;
     gear_score: number;
-    draft_attack?: number | null;
-    draft_awakening_attack?: number | null;
-    draft_defense?: number | null;
 }
 
 export interface UserGearMedia {

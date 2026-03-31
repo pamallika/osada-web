@@ -1,132 +1,117 @@
 import React, { useState } from 'react';
-import type { UserProfile, UserGearMedia } from '../api/types';
+import type { UserGearMedia } from '../api/types';
 
 interface GearComparisonProps {
-    currentProfile: UserProfile;
     currentMedia: UserGearMedia[];
-    draftProfile: Partial<UserProfile> | null;
     draftMedia: UserGearMedia[];
 }
 
 export const GearComparison: React.FC<GearComparisonProps> = ({ 
-    currentProfile, 
     currentMedia, 
-    draftProfile, 
     draftMedia 
 }) => {
-    const [activeTab, setActiveTab] = useState<'current' | 'new'>('new');
+    const [activeTab, setActiveTab] = useState<'current' | 'new'>(draftMedia.length > 0 ? 'new' : 'current');
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-    const hasDraft = !!draftProfile || draftMedia.length > 0;
+    const hasDraft = draftMedia.length > 0;
 
-    const StatsGrid = ({ profile, title }: { profile: Partial<UserProfile>, title: string }) => (
-        <div className="bg-zinc-950/50 p-6 rounded-3xl border border-zinc-800/50 space-y-4">
-            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] italic">{title}</h4>
-            <div className="grid grid-cols-3 gap-6">
-                <div className="text-center">
-                    <div className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">AP</div>
-                    <div className="text-xl font-black text-zinc-100 italic">{profile.attack ?? 0}</div>
-                </div>
-                <div className="text-center">
-                    <div className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">AAP</div>
-                    <div className="text-xl font-black text-zinc-100 italic">{profile.awakening_attack ?? 0}</div>
-                </div>
-                <div className="text-center">
-                    <div className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">DP</div>
-                    <div className="text-xl font-black text-zinc-100 italic">{profile.defense ?? 0}</div>
-                </div>
-            </div>
-            <div className="pt-4 border-t border-zinc-800/30 text-center">
-                <div className="text-[8px] font-black text-violet-400 uppercase tracking-widest mb-1">GS</div>
-                <div className="text-2xl font-black text-violet-400 italic">
-                    {Math.max(profile.attack ?? 0, profile.awakening_attack ?? 0) + (profile.defense ?? 0)}
-                </div>
-            </div>
-        </div>
-    );
-
-    const MediaGallery = ({ media }: { media: UserGearMedia[] }) => (
-        <div className="grid grid-cols-2 gap-3">
-            {media.length === 0 ? (
-                <div className="col-span-2 py-8 text-center bg-zinc-950/20 rounded-2xl border border-dashed border-zinc-800/50">
-                    <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest">Нет скриншотов</span>
-                </div>
-            ) : (
-                media.map(m => (
-                    <div key={m.id} className="group relative aspect-video bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800/50">
-                        <img src={m.url} alt={m.label || 'Gear'} className="w-full h-full object-cover" />
-                        <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-zinc-900/80 backdrop-blur-md rounded text-[7px] font-black text-zinc-300 uppercase tracking-widest">
-                            {m.label}
-                        </div>
+    const MediaGallery = ({ media, title }: { media: UserGearMedia[], title: string }) => (
+        <div className="space-y-4">
+            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{title}</h4>
+            <div className="grid grid-cols-2 gap-3">
+                {media.length === 0 ? (
+                    <div className="col-span-2 py-12 text-center bg-zinc-950/20 rounded-[2rem] border border-dashed border-zinc-800/50">
+                        <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest italic">Нет скриншотов в этой категории</span>
                     </div>
-                ))
-            )}
+                ) : (
+                    media.map(m => (
+                        <div 
+                            key={m.id} 
+                            onClick={() => setPreviewUrl(m.url)}
+                            className="group relative aspect-video bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800/50 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] active:scale-95"
+                        >
+                            <img src={m.url} alt={m.label || 'Gear'} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                            <div className="absolute top-3 left-3 px-2.5 py-1 bg-zinc-900/90 backdrop-blur-md rounded-lg text-[8px] font-black text-zinc-300 uppercase tracking-[0.2em] border border-white/5 shadow-xl">
+                                {m.label}
+                            </div>
+                            <div className="absolute inset-0 bg-violet-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                </svg>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
     );
 
     if (!hasDraft) {
         return (
-            <div className="space-y-8">
-                <StatsGrid profile={currentProfile} title="Текущий билд" />
-                <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Альбом скриншотов</h4>
-                    <MediaGallery media={currentMedia} />
-                </div>
+            <div className="animate-in fade-in duration-300">
+                <MediaGallery media={currentMedia} title="Текущий альбом" />
+                {previewUrl && <ImageLightbox url={previewUrl} onClose={() => setPreviewUrl(null)} />}
             </div>
         );
     }
 
     return (
         <div className="space-y-8 animate-in fade-in duration-300">
-            {/* Tabs for TMA/Mobile adaptation */}
-            <div className="flex p-1 bg-zinc-950 rounded-2xl border border-zinc-800/50">
+            {/* Tabs */}
+            <div className="flex p-1.5 bg-zinc-950 rounded-[2rem] border border-zinc-800/50 shadow-inner">
                 <button
                     onClick={() => setActiveTab('new')}
-                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${
+                    className={`flex-1 py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest italic transition-all ${
                         activeTab === 'new' 
                             ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20' 
                             : 'text-zinc-500 hover:text-zinc-300'
                     }`}
                 >
-                    Новый билд
+                    Заявка
                 </button>
                 <button
                     onClick={() => setActiveTab('current')}
-                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all ${
+                    className={`flex-1 py-3 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest italic transition-all ${
                         activeTab === 'current' 
                             ? 'bg-zinc-800 text-zinc-100' 
                             : 'text-zinc-500 hover:text-zinc-300'
                     }`}
                 >
-                    Текущий билд
+                    Текущее
                 </button>
             </div>
 
             <div className="animate-in slide-in-from-right-4 duration-300">
                 {activeTab === 'new' ? (
-                    <div className="space-y-8">
-                        <StatsGrid 
-                            profile={{
-                                attack: draftProfile?.attack ?? currentProfile.attack,
-                                awakening_attack: draftProfile?.awakening_attack ?? currentProfile.awakening_attack,
-                                defense: draftProfile?.defense ?? currentProfile.defense,
-                            }} 
-                            title="Предлагаемые изменения" 
-                        />
-                        <div className="space-y-4">
-                            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Новые скриншоты</h4>
-                            <MediaGallery media={draftMedia} />
-                        </div>
-                    </div>
+                    <MediaGallery media={draftMedia} title="Новые скриншоты" />
                 ) : (
-                    <div className="space-y-8">
-                        <StatsGrid profile={currentProfile} title="Текущий билд" />
-                        <div className="space-y-4">
-                            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Текущий альбом</h4>
-                            <MediaGallery media={currentMedia} />
-                        </div>
-                    </div>
+                    <MediaGallery media={currentMedia} title="Текущий альбом" />
                 )}
             </div>
+
+            {previewUrl && <ImageLightbox url={previewUrl} onClose={() => setPreviewUrl(null)} />}
         </div>
     );
 };
+
+const ImageLightbox = ({ url, onClose }: { url: string, onClose: () => void }) => (
+    <div 
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/95 backdrop-blur-sm p-4 cursor-zoom-out animate-in fade-in duration-300"
+        onClick={onClose}
+    >
+        <img 
+            src={url} 
+            className="max-w-full max-h-full rounded-2xl shadow-2xl border border-zinc-800/50 animate-in zoom-in-95 duration-300"
+            alt="Full Preview"
+            onClick={(e) => e.stopPropagation()} 
+        />
+        <button 
+            className="absolute top-8 right-8 p-4 bg-zinc-900 rounded-full border border-zinc-800 text-zinc-500 hover:text-white transition-all shadow-xl"
+            onClick={onClose}
+        >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+);

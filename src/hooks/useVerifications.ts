@@ -45,10 +45,8 @@ export const useVerifications = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const updated = await authApi.approveVerification(userId);
-            setVerifications(prev => prev.map(v => 
-                v.user?.id === updated.user?.id ? updated : v
-            ));
+            await authApi.approveVerification(userId);
+            await fetchVerifications();
             return true;
         } catch (err: unknown) {
             const message = axios.isAxiosError(err) 
@@ -65,10 +63,8 @@ export const useVerifications = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const updated = await authApi.rejectVerification(userId);
-            setVerifications(prev => prev.map(v => 
-                v.user?.id === updated.user?.id ? updated : v
-            ));
+            await authApi.rejectVerification(userId);
+            await fetchVerifications();
             return true;
         } catch (err: unknown) {
             const message = axios.isAxiosError(err) 

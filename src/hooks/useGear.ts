@@ -89,13 +89,12 @@ export const useGear = () => {
         setError(null);
         setSuccess(null);
         try {
-            const updatedMembership = await authApi.submitVerification();
-            if (user) {
-                const updatedMemberships = user.guild_memberships?.map(m => 
-                    m.guild.id === updatedMembership.guild.id ? updatedMembership : m
-                );
-                setUser({ ...user, guild_memberships: updatedMemberships });
-            }
+            await authApi.submitVerification();
+            
+            // Sync user data to update total membership state
+            const updatedUser = await authApi.getMe();
+            setUser(updatedUser);
+            
             setSuccess('Заявка на верификацию отправлена');
             return true;
         } catch (err: unknown) {

@@ -48,10 +48,10 @@ export default function VerificationPage() {
 
     const getStatusBadge = (status: string) => {
         switch (status) {
-            case 'verified': return <span className="px-2 py-1 bg-emerald-950/20 text-emerald-400 border border-emerald-800/30 rounded text-[8px] font-black uppercase tracking-widest italic">Verified</span>;
-            case 'pending': return <span className="px-2 py-1 bg-amber-950/20 text-amber-400 border border-amber-800/30 rounded text-[8px] font-black uppercase tracking-widest italic">Pending</span>;
-            case 'updated': return <span className="px-2 py-1 bg-violet-950/20 text-violet-400 border border-violet-800/30 rounded text-[8px] font-black uppercase tracking-widest italic">Updated</span>;
-            default: return <span className="px-2 py-1 bg-zinc-950/50 text-zinc-500 border border-zinc-800/50 rounded text-[8px] font-black uppercase tracking-widest italic">Incomplete</span>;
+            case 'verified': return <span className="px-2 py-1 bg-emerald-950/20 text-emerald-400 border border-emerald-800/30 rounded text-[8px] font-black uppercase tracking-widest italic">Одобрен</span>;
+            case 'pending': return <span className="px-2 py-1 bg-amber-950/20 text-amber-400 border border-amber-800/30 rounded text-[8px] font-black uppercase tracking-widest italic">Ожидает проверки</span>;
+            case 'updated': return <span className="px-2 py-1 bg-violet-950/20 text-violet-400 border border-violet-800/30 rounded text-[8px] font-black uppercase tracking-widest italic">Обновлен</span>;
+            default: return <span className="px-2 py-1 bg-zinc-950/50 text-zinc-500 border border-zinc-800/50 rounded text-[8px] font-black uppercase tracking-widest italic">Не заполнен</span>;
         }
     };
 
@@ -146,12 +146,16 @@ export default function VerificationPage() {
                                             )}
                                         </td>
                                         <td className="px-6 py-5 text-right">
-                                            <button
-                                                onClick={() => handleSelectUser(member.user?.id as number, member)}
-                                                className="px-4 py-2 bg-zinc-800 hover:bg-violet-700 text-zinc-300 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest italic transition-all border border-zinc-700 hover:border-violet-600 shadow-lg shadow-black/20"
-                                            >
-                                                Проверить
-                                            </button>
+                                            {(member.verification_status === 'pending' || member.verification_status === 'updated') ? (
+                                                <button
+                                                    onClick={() => handleSelectUser(member.user?.id as number, member)}
+                                                    className="px-4 py-2 bg-zinc-800 hover:bg-violet-700 text-zinc-300 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest italic transition-all border border-zinc-700 hover:border-violet-600 shadow-lg shadow-black/20"
+                                                >
+                                                    Проверить
+                                                </button>
+                                            ) : (
+                                                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-widest italic pr-6">—</span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -170,7 +174,7 @@ export default function VerificationPage() {
                                 <h3 className="text-2xl font-black text-zinc-100 uppercase italic tracking-tight">
                                     Проверка: {selectedUser.profile.family_name}
                                 </h3>
-                                <p className="text-zinc-500 text-[9px] font-black uppercase tracking-widest mt-1 italic">Сравнение характеристик и альбома</p>
+                                <p className="text-zinc-500 text-[9px] font-black uppercase tracking-widest mt-1 italic">Сравнение альбомов скриншотов</p>
                             </div>
                             <button 
                                 onClick={() => setSelectedUser(null)}
@@ -184,13 +188,7 @@ export default function VerificationPage() {
 
                         <div className="p-8 overflow-y-auto">
                             <GearComparison 
-                                currentProfile={selectedUser.profile}
                                 currentMedia={selectedUser.media.filter(m => !m.is_draft)}
-                                draftProfile={{
-                                    attack: selectedUser.profile.draft_attack,
-                                    awakening_attack: selectedUser.profile.draft_awakening_attack,
-                                    defense: selectedUser.profile.draft_defense
-                                }}
                                 draftMedia={selectedUser.media.filter(m => m.is_draft)}
                             />
                         </div>
