@@ -58,9 +58,10 @@ export const GuildApplicationsList: React.FC = () => {
                             👤
                         </div>
                         <div>
-                            <div className="font-black text-white uppercase italic tracking-tight">{app.user.profile?.family_name || app.user.profile?.global_name || 'Участник'}</div>
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{app.user.profile?.char_class || 'БЕЗ КЛАССА'}</div>
-                            <div className="text-[8px] text-slate-600 font-bold uppercase mt-1">Подано: {new Date(app.created_at).toLocaleDateString()}</div>
+                            <div className="font-black text-white uppercase italic tracking-tight leading-none">{app.user.profile?.family_name || app.user.profile?.global_name || 'Участник'}</div>
+                            <div className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.15em] italic mt-1.5 opacity-70">
+                                Подано: {new Date(app.joined_at || app.created_at || '').toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                            </div>
                         </div>
                     </div>
                     <div className="flex gap-2">

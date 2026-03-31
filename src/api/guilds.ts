@@ -15,6 +15,7 @@ export interface GuildMember {
     role: 'creator' | 'admin' | 'officer' | 'member' | 'pending';
     status: 'active' | 'pending';
     user: User;
+    joined_at?: string;
     created_at: string;
 }
 
