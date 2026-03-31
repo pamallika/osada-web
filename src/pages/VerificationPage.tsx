@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useVerifications } from '../hooks/useVerifications';
 import { GearComparison } from '../components/GearComparison';
+import Avatar from '../components/ui/Avatar';
 import type { UserProfile, UserGearMedia, GuildMembership } from '../api/types';
 
 export default function VerificationPage() {
@@ -118,9 +119,7 @@ export default function VerificationPage() {
                                     <tr key={member.user?.id || member.id} className="hover:bg-zinc-800/30 transition-colors group">
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-zinc-950 rounded-xl border border-zinc-800 group-hover:border-violet-700/50 transition-colors flex items-center justify-center text-zinc-400 font-black italic">
-                                                    {member.user?.profile?.family_name?.charAt(0).toUpperCase() || 'U'}
-                                                </div>
+                                                <Avatar user={member.user} size="md" className="group-hover:border-violet-700/50 transition-colors" />
                                                 <div>
                                                     <div className="text-zinc-100 font-black uppercase italic tracking-tight">{member.user?.profile?.family_name || 'Unknown'}</div>
                                                     <div className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Role: {member.role}</div>

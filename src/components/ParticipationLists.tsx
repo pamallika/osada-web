@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import type { Event, EventUser } from '../api/events';
 import { PlayerProfileModal } from './PlayerProfileModal';
+import Avatar from './ui/Avatar';
 
 interface ParticipationListsProps {
     event: Event;
@@ -38,9 +39,9 @@ export const ParticipationLists: FC<ParticipationListsProps> = ({ event }) => {
                             <div 
                                 key={user.id} 
                                 onClick={() => setSelectedUserId(user.id)}
-                                className="flex items-center gap-3 group/u cursor-pointer p-3 rounded-xl hover:bg-zinc-800/50 transition-all border border-transparent hover:border-zinc-800/50"
+                                className="flex items-center gap-3 group/u cursor-pointer p-2 rounded-xl hover:bg-zinc-800/50 transition-all border border-transparent hover:border-zinc-800/50"
                             >
-                                <div className="w-1.5 h-1.5 bg-violet-500 rounded-full group-hover/u:shadow-[0_0_8px_rgba(139,92,246,0.6)] transition-all shrink-0"></div>
+                                <Avatar user={user as any} size="sm" className="group-hover/u:border-violet-700/50" />
                                 <div className="flex flex-col min-w-0">
                                     <div className="text-xs font-bold text-zinc-100 uppercase tracking-tight group-hover/u:text-violet-400 transition-colors truncate">
                                         {getUserDisplayName(user)}
@@ -75,9 +76,9 @@ export const ParticipationLists: FC<ParticipationListsProps> = ({ event }) => {
                             <div 
                                 key={user.id} 
                                 onClick={() => setSelectedUserId(user.id)}
-                                className="flex items-center gap-3 group/u opacity-60 cursor-pointer p-3 rounded-xl hover:opacity-100 hover:bg-zinc-800/30 transition-all border border-transparent hover:border-zinc-800/50"
+                                className="flex items-center gap-3 group/u opacity-60 cursor-pointer p-2 rounded-xl hover:opacity-100 hover:bg-zinc-800/30 transition-all border border-transparent hover:border-zinc-800/50"
                             >
-                                <div className="w-1.5 h-1.5 bg-rose-800/50 rounded-full shrink-0"></div>
+                                <Avatar user={user as any} size="sm" className="grayscale-[0.5] group-hover/u:grayscale-0" />
                                 <div className="flex flex-col min-w-0">
                                     <div className="text-xs font-bold text-zinc-400 uppercase tracking-tight group-hover/u:text-rose-400 transition-colors line-through decoration-rose-900/50 truncate flex items-center gap-1.5">
                                         {getUserDisplayName(user)}

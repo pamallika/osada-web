@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { guildApi } from '../api/guilds';
 import { authApi } from '../api/auth';
 
-export default function InviteHandler() {
+const InviteHandler = () => {
     const { slug } = useParams();
     const { token: authToken, user, setUser } = useAuthStore();
     const navigate = useNavigate();
@@ -80,7 +80,7 @@ export default function InviteHandler() {
         return (
             <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white font-sans">
                 <div className="flex flex-col items-center gap-6">
-                    <div className="w-16 h-16 border-4 border-violet-700 border-t-transparent rounded-2xl animate-spin"></div>
+                    <div className="w-16 h-16 border-4 border-violet-700 border-t-transparent rounded-2xl animate-spin shadow-xl shadow-violet-900/20"></div>
                     <p className="text-xl font-black uppercase italic tracking-widest text-zinc-100">Проверка инвайта...</p>
                 </div>
             </div>
@@ -106,7 +106,7 @@ export default function InviteHandler() {
                         Участников: <span className="text-zinc-300">{inviteInfo.members_count}</span>
                     </p>
 
-                    <p className="text-zinc-400 text-sm font-medium leading-relaxed mb-10">
+                    <p className="text-zinc-400 text-sm font-medium leading-relaxed mb-10 text-balance">
                         Вы получили приглашение вступить в гильдию. Хотите подать заявку?
                     </p>
 
@@ -114,7 +114,7 @@ export default function InviteHandler() {
                         <button 
                             onClick={handleApply}
                             disabled={processing}
-                            className="w-full bg-violet-700 hover:bg-violet-600 disabled:opacity-50 text-white font-black py-4 rounded-2xl transition-all uppercase tracking-widest text-[10px] italic shadow-xl shadow-violet-900/20"
+                            className="w-full bg-violet-700 hover:bg-violet-600 disabled:opacity-50 text-white font-black py-4 rounded-2xl transition-all uppercase tracking-widest text-[10px] italic shadow-xl shadow-violet-900/10"
                         >
                             {processing ? 'Подача заявки...' : 'Вступить в гильдию'}
                         </button>
@@ -141,7 +141,7 @@ export default function InviteHandler() {
                         ⚠️
                     </div>
                     <h1 className="text-2xl font-black text-zinc-100 uppercase italic mb-4 tracking-tight">Ошибка инвайта</h1>
-                    <p className="text-zinc-500 text-sm font-medium mb-8 leading-relaxed">{error}</p>
+                    <p className="text-zinc-500 text-sm font-medium mb-8 leading-relaxed max-w-xs mx-auto">{error}</p>
                     
                     <div className="space-y-3">
                         <button 
@@ -183,3 +183,5 @@ export default function InviteHandler() {
 
     return null;
 }
+
+export default InviteHandler;

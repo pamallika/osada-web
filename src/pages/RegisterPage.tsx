@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { authApi } from '../api/auth';
 import { useTelegramAuth } from '../hooks/useTelegramAuth';
 
-export default function RegisterPage() {
+const RegisterPage = () => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
     const { setAuth } = useAuthStore();
     const { startDeepLinkAuth, isLoading: isTgAppLoading, error: tgAppError } = useTelegramAuth();
@@ -160,4 +160,6 @@ export default function RegisterPage() {
             </div>
         </div>
     );
-}
+};
+
+export default RegisterPage;

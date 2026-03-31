@@ -1,5 +1,6 @@
-import { FC, useState } from 'react';
+import { FC, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMemberDashboard } from '../hooks/useDashboard';
 import { useAuthStore } from '../store/useAuthStore';
 import { useNotificationStore } from '../store/useNotificationStore';
@@ -11,10 +12,13 @@ import { ru } from 'date-fns/locale';
 
 export const MemberDashboardView: FC = () => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { user, setUser } = useAuthStore();
     const { addNotification } = useNotificationStore();
-    const { data: dashboard, isLoading, error, refetch } = useMemberDashboard();
+    const { data: dashboard, isLoading, error } = useMemberDashboard();
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isUploadingLogo, setIsUploadingLogo] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
     const [isEditingInvite, setIsEditingInvite] = useState(false);
     const [editInviteSlug, setEditInviteSlug] = useState('');
@@ -30,6 +34,46 @@ export const MemberDashboardView: FC = () => {
     const handleEditInvite = () => {
         setEditInviteSlug(dashboard?.guild?.invite_slug || '');
         setIsEditingInvite(true);
+    };
+
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            addNotification({ title: 'Ошибка', message: 'Разрешены только изображения', type: 'error' });
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            addNotification({ title: 'Ошибка', message: 'Максимальный размер - 2MB', type: 'error' });
+            return;
+        }
+
+        setIsUploadingLogo(true);
+        try {
+            const updatedGuildData = await guildApi.uploadLogo(file);
+            
+            // Refetch dashboard
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'member'] });
+            
+            // Update auth store (so header logo updates too)
+            if (user && user.guild_memberships) {
+                const updatedMemberships = user.guild_memberships.map(m => {
+                    if (m.guild.id === updatedGuildData.id) {
+                        return { ...m, guild: { ...m.guild, logo_url: updatedGuildData.logo_url } };
+                    }
+                    return m;
+                });
+                setUser({ ...user, guild_memberships: updatedMemberships });
+            }
+
+            addNotification({ title: 'Успешно', message: 'Логотип гильдии обновлен', type: 'success' });
+        } catch (err) {
+            addNotification({ title: 'Ошибка', message: 'Не удалось загрузить логотип', type: 'error' });
+        } finally {
+            setIsUploadingLogo(false);
+        }
     };
 
     const handleSaveInvite = async () => {
@@ -57,7 +101,7 @@ export const MemberDashboardView: FC = () => {
             const updatedGuild = await guildApi.updateInviteSlug(editInviteSlug.toLowerCase());
 
             // Update dashboard
-            await refetch();
+            queryClient.invalidateQueries({ queryKey: ['dashboard', 'member'] });
 
             // Update global store
             if (user && user.guild_memberships) {
@@ -143,23 +187,53 @@ export const MemberDashboardView: FC = () => {
     }
 
     const { stats, guild, next_event, open_events } = dashboard;
+    const canManageGuild = user?.guild_memberships?.find(m => m.guild.id === guild?.id)?.role && ['creator', 'admin'].includes(user.guild_memberships.find(m => m.guild.id === guild?.id)!.role);
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 select-none pb-12 safe-area-inset">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    {guild?.logo_url ? (
-                        <img
-                            src={guild.logo_url}
-                            alt={guild.name}
-                            className="w-12 h-12 rounded-2xl border border-zinc-800/50 object-cover shadow-2xl shadow-zinc-950"
-                        />
-                    ) : (
-                        <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800/50 flex items-center justify-center text-zinc-500 font-black italic text-xl shadow-inner uppercase">
-                            {guild?.name?.[0] || 'S'}
+                    <div 
+                        className={`relative group ${canManageGuild ? 'cursor-pointer' : ''}`}
+                        onClick={() => canManageGuild && fileInputRef.current?.click()}
+                    >
+                        <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800/50 flex items-center justify-center text-zinc-500 font-black italic text-xl shadow-inner overflow-hidden relative">
+                            {guild?.logo_url ? (
+                                <img
+                                    src={guild.logo_url}
+                                    alt={guild.name}
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                />
+                            ) : (
+                                <span className="uppercase">{guild?.name?.[0] || 'S'}</span>
+                            )}
+
+                            {canManageGuild && (
+                                <div className="absolute inset-0 bg-violet-700/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
+                                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    </svg>
+                                </div>
+                            )}
+
+                            {isUploadingLogo && (
+                                <div className="absolute inset-0 bg-zinc-950/80 flex items-center justify-center">
+                                    <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                            )}
                         </div>
-                    )}
+                        
+                        {canManageGuild && (
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleLogoUpload}
+                            />
+                        )}
+                    </div>
                     <div>
                         <span className="text-[10px] font-black text-violet-500 uppercase tracking-[0.3em] italic">Гильдия</span>
                         <h1 className="text-2xl font-black text-zinc-100 uppercase italic tracking-tighter leading-tight">

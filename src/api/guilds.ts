@@ -120,5 +120,16 @@ export const guildApi = {
     getTelegramBindToken: async () => {
         const { data } = await apiClient.get<ApiResponse<{ token: string }>>('guilds/my/telegram-bind-token');
         return data.data;
+    },
+
+    uploadLogo: async (file: File) => {
+        const formData = new FormData();
+        formData.append('logo', file);
+        const { data } = await apiClient.post<ApiResponse<Guild>>('guilds/my/logo', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return data.data;
     }
 };

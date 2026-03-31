@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useSyncUser } from '../hooks/useSyncUser';
 import { usePresence } from '../hooks/usePresence';
 import { useUserWebSockets } from '../hooks/useUserWebSockets';
+import Avatar from './ui/Avatar';
 import { Toaster } from './Toaster';
 
 interface MainLayoutProps {
@@ -123,15 +124,7 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                             )}
 
                             <Link to="/profile" className="flex items-center gap-3 p-1.5 pr-4 bg-zinc-900 rounded-xl border border-zinc-800/50 hover:border-violet-700 transition-all group">
-                                <div className="w-9 h-9 rounded-lg bg-violet-700/20 border border-violet-700/30 flex items-center justify-center text-violet-400 overflow-hidden group-hover:scale-105 transition-transform">
-                                    {user?.linked_accounts?.find(acc => acc.avatar)?.avatar ? (
-                                        <img src={user.linked_accounts.find(acc => acc.avatar)!.avatar!} alt="" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span className="font-black text-sm italic uppercase">
-                                            {(user?.profile?.family_name || user?.profile?.global_name || 'U').charAt(0).toUpperCase()}
-                                        </span>
-                                    )}
-                                </div>
+                                <Avatar user={user} size="md" className="group-hover:scale-105 transition-transform" />
                                 <div className="hidden sm:block">
                                     <div className="text-[10px] font-black text-zinc-100 group-hover:text-violet-400 transition-colors uppercase italic tracking-tight leading-none">
                                         {user?.profile?.family_name || user?.profile?.global_name || 'Участник'}

@@ -40,7 +40,16 @@ export const useGear = () => {
         setSuccess(null);
         try {
             const newMedia = await authApi.uploadGearMedia(file, label);
-            setMedia(prev => [...prev, newMedia]);
+            // Replace existing media with same label or add new
+            setMedia(prev => {
+                const filtered = prev.filter(m => m.label !== label);
+                return [...filtered, newMedia];
+            });
+            
+            // Sync user data to get updated verification status
+            const updatedUser = await authApi.getMe();
+            setUser(updatedUser);
+            
             setSuccess('Скриншот успешно загружен');
             return true;
         } catch (err: unknown) {
@@ -59,6 +68,11 @@ export const useGear = () => {
         try {
             await authApi.deleteGearMedia(id);
             setMedia(prev => prev.filter(m => m.id !== id));
+            
+            // Sync user data
+            const updatedUser = await authApi.getMe();
+            setUser(updatedUser);
+            
             setSuccess('Скриншот удален');
             return true;
         } catch (err: unknown) {

@@ -141,5 +141,14 @@ export const authApi = {
             params: { verifier }
         });
         return data.data;
+    },
+
+    uploadAvatar: async (file: File) => {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        const { data } = await apiClient.post<ApiResponse<User>>('auth/avatar', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return data.data;
     }
 };

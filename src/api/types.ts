@@ -9,6 +9,7 @@ export interface User {
     email: string | null;
     name: string;
     has_password: boolean;
+    avatar_url: string | null;
     profile: UserProfile;
     linked_accounts?: LinkedAccount[];
     guild_memberships?: GuildMembership[];

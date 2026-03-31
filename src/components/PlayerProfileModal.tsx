@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { usePlayerProfile } from '../hooks/usePlayerProfile';
+import Avatar from './ui/Avatar';
 
 interface PlayerProfileModalProps {
     userId: number | null;
@@ -58,15 +59,7 @@ export const PlayerProfileModal: FC<PlayerProfileModalProps> = ({ userId, onClos
                 ) : profile ? (
                     <div className="relative">
                         <div className="flex flex-col items-center mb-8">
-                            <div className="w-24 h-24 bg-zinc-900 rounded-full mb-6 flex items-center justify-center text-zinc-400 overflow-hidden border border-zinc-800/50 relative shadow-xl">
-                                {profile?.linked_accounts?.find(acc => acc.avatar)?.avatar ? (
-                                    <img src={profile.linked_accounts.find(acc => acc.avatar)!.avatar!} alt="Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                    <span className="text-4xl font-black uppercase italic">
-                                        {(profile.profile?.family_name || profile.profile?.global_name || 'U').charAt(0).toUpperCase()}
-                                    </span>
-                                )}
-                            </div>
+                            <Avatar user={profile} size="xl" className="mb-6 shadow-xl" />
                             <h2 className="text-2xl font-black text-zinc-100 uppercase italic tracking-tighter text-center">
                                 {profile.profile?.family_name || profile.profile?.global_name || 'Участник'}
                             </h2>

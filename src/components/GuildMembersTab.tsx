@@ -5,6 +5,8 @@ import { authApi } from '../api/auth';
 import { useAuthStore } from '../store/useAuthStore';
 import { PlayerProfileModal } from './PlayerProfileModal';
 
+import Avatar from './ui/Avatar';
+
 interface GuildMembersTabProps {
     currentUserId: number;
     currentUserRole: 'creator' | 'admin' | 'officer' | 'member';
@@ -88,9 +90,11 @@ export const GuildMembersTab: React.FC<GuildMembersTabProps> = ({ currentUserId,
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="relative">
-                                            <div className={`w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center font-black text-xs italic ${member.user?.id === currentUserId ? 'text-emerald-400 border-emerald-900/50' : 'text-zinc-500'}`}>
-                                                {member.user?.profile?.family_name?.charAt(0) || '?'}
-                                            </div>
+                                            <Avatar 
+                                                user={member.user} 
+                                                size="md" 
+                                                className={member.user?.id === currentUserId ? 'border-emerald-900/50' : ''} 
+                                            />
                                             {member.user?.id === currentUserId && (
                                                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-zinc-950 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
                                             )}

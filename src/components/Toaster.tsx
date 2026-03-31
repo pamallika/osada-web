@@ -1,6 +1,17 @@
 import React from 'react';
 import { useNotificationStore } from '../store/useNotificationStore';
 
+export const toast = {
+    success: (message: string, title = 'Успех') => 
+        useNotificationStore.getState().addNotification({ type: 'success', title, message }),
+    error: (message: string, title = 'Ошибка') => 
+        useNotificationStore.getState().addNotification({ type: 'error', title, message }),
+    info: (message: string, title = 'Инфо') => 
+        useNotificationStore.getState().addNotification({ type: 'info', title, message }),
+    warning: (message: string, title = 'Внимание') => 
+        useNotificationStore.getState().addNotification({ type: 'warning', title, message }),
+};
+
 export const Toaster: React.FC = () => {
     const { notifications, removeNotification } = useNotificationStore();
 
