@@ -9,11 +9,11 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    allowedHosts: ['arigami.space', 'api.arigami.space'],
+    allowedHosts: ['arigami.space', 'api.arigami.space', 'sage.local'],
     host: '0.0.0.0',
     port: 5173,
     hmr: {
-        host: 'arigami.space'
+        host: process.env.VITE_HMR_HOST || 'arigami.space'
     }
   }
 })
