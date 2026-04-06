@@ -209,7 +209,10 @@ const InviteHandler = () => {
                                 Попробовать снова
                             </button>
                             <button 
-                                onClick={() => navigate('/dashboard')}
+                                onClick={() => {
+                                    localStorage.removeItem('pending_invite');
+                                    navigate('/dashboard');
+                                }}
                                 className="w-full py-3 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-white/[0.08] text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-all"
                             >
                                 На главную
