@@ -88,54 +88,71 @@ export const CreateEventModal: FC<CreateEventModalProps> = ({ guildId, isOpen, o
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-zinc-950/85 backdrop-blur-md animate-in fade-in duration-200">
             <div 
-                className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm" 
+                className="absolute inset-0" 
                 onClick={onClose}
             ></div>
 
             <div 
-                className="bg-zinc-900 p-8 md:p-10 rounded-[2rem] shadow-2xl w-full max-w-xl border border-zinc-800/50 relative overflow-hidden animate-in fade-in zoom-in duration-300"
+                className="bg-zinc-900/80 backdrop-blur-2xl w-full max-w-md rounded-3xl border border-white/[0.08] shadow-2xl shadow-black/60 p-8 relative overflow-hidden animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="text-center mb-8 relative">
-                    <div className="w-16 h-16 bg-violet-700/20 border border-violet-700/30 rounded-2xl mx-auto flex items-center justify-center mb-4">
-                        <span className="text-2xl text-violet-400">{event ? '📝' : '⚔️'}</span>
+                {/* Close Button X */}
+                <button 
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 rounded-xl bg-zinc-800/50 hover:bg-zinc-700/50 text-zinc-500 hover:text-zinc-300 border border-white/5 transition-all z-10"
+                >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <div className="flex justify-center mb-6">
+                    <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.15)]">
+                        <svg className="w-7 h-7 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
                     </div>
-                    <h2 className="text-2xl font-black text-zinc-100 tracking-tight uppercase italic">
-                        {event ? 'Правка События' : 'Новое Событие'}
+                </div>
+
+                <div className="text-center mb-8">
+                    <h2 className="text-2xl font-bold tracking-tight text-white">
+                        {event ? 'Изменить событие' : 'Новое событие'}
                     </h2>
-                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">
-                        Управление мероприятием
+                    <p className="text-sm text-zinc-500 mt-1">
+                        {event ? 'Отредактируйте параметры мероприятия' : 'Настройте параметры осады или события'}
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6 relative">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     {error && (
-                        <div className="bg-rose-900/20 border border-rose-800/50 text-rose-100 p-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3">
-                            <span className="text-base">⚠️</span>
+                        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-3 rounded-xl text-xs font-medium flex items-center gap-3">
+                            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
                             {error}
                         </div>
                     )}
 
-                    <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">
-                            Название события
+                    <div>
+                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1.5 ml-1">
+                            Название события <span className="text-violet-500/50 ml-0.5">*</span>
                         </label>
                         <input
                             type="text"
                             required
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-6 py-4 text-zinc-100 font-bold focus:outline-none focus:border-violet-700 transition-all placeholder:text-zinc-700"
-                            placeholder="Напр. Сбор на босса"
+                            className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all"
+                            placeholder="Напр. Осада Т2"
                             autoFocus
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1.5 ml-1">
                                 Дата
                             </label>
                             <input
@@ -143,11 +160,11 @@ export const CreateEventModal: FC<CreateEventModalProps> = ({ guildId, isOpen, o
                                 required
                                 value={formData.date}
                                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-6 py-4 text-zinc-100 font-bold focus:outline-none focus:border-violet-700 transition-all [color-scheme:dark]"
+                                className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all [&::-webkit-calendar-picker-indicator]:opacity-40 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                        <div>
+                            <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1.5 ml-1">
                                 Время
                             </label>
                             <input
@@ -155,40 +172,47 @@ export const CreateEventModal: FC<CreateEventModalProps> = ({ guildId, isOpen, o
                                 required
                                 value={formData.time}
                                 onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-6 py-4 text-zinc-100 font-bold focus:outline-none focus:border-violet-700 transition-all [color-scheme:dark]"
+                                className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all [&::-webkit-calendar-picker-indicator]:opacity-40 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                             />
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">
+                    <div>
+                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1.5 ml-1">
                             Дополнительные сведения
                         </label>
                         <textarea
                             rows={3}
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-6 py-4 text-zinc-100 font-bold focus:outline-none focus:border-violet-700 transition-all placeholder:text-zinc-700 resize-none"
-                            placeholder="Описание события..."
+                            className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all resize-none"
+                            placeholder="Описание события, анонс, инструкции..."
                         ></textarea>
                     </div>
 
-                    <div className="flex gap-4 pt-4">
+                    <div className="flex gap-3 mt-8">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black py-4 px-6 rounded-xl transition-all uppercase tracking-widest text-[10px] italic border border-zinc-700/50"
+                            className="flex-1 py-3 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 hover:text-white text-sm font-medium transition-all"
                         >
                             Отмена
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-2 bg-violet-700 hover:bg-violet-600 disabled:opacity-50 text-white font-black py-4 px-10 rounded-xl transition-all uppercase tracking-widest text-[10px] italic flex items-center justify-center gap-3"
+                            className="flex-[1.5] flex items-center justify-center gap-2 py-3 rounded-xl bg-white text-zinc-900 hover:bg-zinc-100 text-sm font-semibold shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isLoading ? (
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            ) : (event ? 'Обновить данные' : 'Создать событие')}
+                                <div className="w-4 h-4 border-2 border-zinc-900/30 border-t-zinc-900 rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    {event ? 'Обновить' : 'Создать событие'}
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                    </svg>
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>

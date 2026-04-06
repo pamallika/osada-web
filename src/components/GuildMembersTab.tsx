@@ -4,7 +4,7 @@ import { guildApi } from '../api/guilds';
 import { authApi } from '../api/auth';
 import { useAuthStore } from '../store/useAuthStore';
 import { PlayerProfileModal } from './PlayerProfileModal';
-
+import { Skeleton } from './ui/Skeleton';
 import Avatar from './ui/Avatar';
 
 interface GuildMembersTabProps {
@@ -43,7 +43,6 @@ export const GuildMembersTab: React.FC<GuildMembersTabProps> = ({ currentUserId,
         mutationFn: (userId: number) => guildApi.kickMember(userId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['guild-members'] });
-            alert('Участник исключен');
         },
         onError: (error: any) => {
             alert(error.response?.data?.message || 'Ошибка при исключении');
@@ -59,116 +58,113 @@ export const GuildMembersTab: React.FC<GuildMembersTabProps> = ({ currentUserId,
         return false;
     };
 
-    const roles = ['member', 'officer', 'admin'];
-    if (currentUserRole === 'creator') roles.push('creator');
-
     if (isLoading) return (
-        <div className="flex flex-col items-center justify-center p-20 gap-4">
-            <div className="w-10 h-10 border-2 border-violet-700/20 border-t-violet-700 rounded-full animate-spin"></div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 italic animate-pulse">Загрузка состава</span>
+        <div className="bg-zinc-900/40 backdrop-blur-xl rounded-2xl border border-white/[0.06] overflow-hidden">
+            {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-white/[0.04]">
+                    <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3.5 w-36" />
+                        <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-4 w-20 hidden sm:block" />
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-7 w-7 rounded-lg" />
+                </div>
+            ))}
         </div>
     );
 
+    const getRoleBadge = (role: string) => {
+        switch (role) {
+            case 'creator':
+                return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[9px] font-semibold uppercase tracking-wider">Creator</span>;
+            case 'admin':
+                return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[9px] font-semibold uppercase tracking-wider">Admin</span>;
+            case 'officer':
+                return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[9px] font-semibold uppercase tracking-wider">Officer</span>;
+            default:
+                return <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-800/80 border border-white/[0.06] text-zinc-400 text-[9px] font-medium uppercase tracking-wider">Member</span>;
+        }
+    };
+
     return (
-        <div className="w-full">
-            <div className="overflow-x-auto no-scrollbar">
-                <table className="w-full text-left border-separate border-spacing-y-3">
-                    <thead>
-                        <tr className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] italic px-4">
-                            <th className="pb-4 px-6">Участник</th>
-                            <th className="pb-4 px-6">Класс</th>
-                            <th className="pb-4 px-6">Ранг</th>
-                            <th className="pb-4 px-6 text-right">Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {members?.map((member, index) => (
-                            <tr key={member.id || member.user_id || index} className="group/row">
-                                <td 
-                                    className="py-5 px-6 bg-zinc-950/40 rounded-l-[1.5rem] border-l border-y border-zinc-800/40 group-hover/row:border-violet-700/40 group-hover/row:bg-zinc-900/60 transition-all cursor-pointer shadow-sm"
-                                    onClick={() => member.user?.id && setSelectedUserId(member.user.id)}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative">
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold tracking-tight text-white">Состав гильдии</h2>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Live</span>
+                </div>
+            </div>
+
+            <div className="bg-zinc-900/40 backdrop-blur-xl rounded-2xl border border-white/[0.06] overflow-hidden">
+                <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-white/[0.04] bg-white/[0.02]">
+                                <th className="py-4 px-6 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Участник</th>
+                                <th className="py-4 px-6 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Класс</th>
+                                <th className="py-4 px-6 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Ранг</th>
+                                <th className="py-4 px-6 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider text-right">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.04]">
+                            {members?.map((member) => (
+                                <tr key={member.id} className="hover:bg-white/[0.025] transition-colors duration-150 group">
+                                    <td className="py-4 px-6" onClick={() => member.user?.id && setSelectedUserId(member.user.id)}>
+                                        <div className="flex items-center gap-3 cursor-pointer">
                                             <Avatar 
                                                 user={member.user} 
                                                 size="md" 
-                                                className={member.user?.id === currentUserId ? 'border-emerald-900/50' : ''} 
+                                                className="ring-1 ring-white/10 group-hover:ring-violet-500/30 transition-colors" 
                                             />
-                                            {member.user?.id === currentUserId && (
-                                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-zinc-950 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                                            )}
+                                            <div>
+                                                <div className="text-zinc-200 font-medium">{member.user?.profile?.family_name || 'Участник'}</div>
+                                                <div className="text-xs text-zinc-600">@{member.user?.profile?.global_name || 'unknown'}</div>
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <span className={`font-black uppercase italic tracking-tight truncate ${member.user?.id === currentUserId ? 'text-emerald-400' : 'text-zinc-100 group-hover/row:text-violet-400 transition-colors'}`}>
-                                                {member.user?.profile?.family_name || 'Участник'}
-                                            </span>
-                                            {member.user?.profile?.global_name && (
-                                                <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest truncate">@{member.user.profile.global_name}</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </td>
-                                
-                                <td className="py-5 px-6 bg-zinc-950/40 border-y border-zinc-800/40 group-hover/row:border-violet-700/40 group-hover/row:bg-zinc-900/60 transition-all">
-                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest bg-zinc-900/50 px-3 py-1 rounded-lg border border-zinc-800/50 italic">
+                                    </td>
+                                    <td className="py-4 px-6 text-sm text-zinc-400 capitalize">
                                         {member.user?.profile?.char_class || '—'}
-                                    </span>
-                                </td>
-
-                                <td className="py-5 px-6 bg-zinc-950/40 border-y border-zinc-800/40 group-hover/row:border-violet-700/40 group-hover/row:bg-zinc-900/60 transition-all">
-                                    {member.user?.id && canManage(member.role, member.user.id) ? (
-                                        <div className="relative inline-block w-32">
+                                    </td>
+                                    <td className="py-4 px-6">
+                                        {canManage(member.role, member.user?.id || 0) ? (
                                             <select
                                                 value={member.role}
-                                                onChange={(e) => updateRoleMutation.mutate({ userId: member.user!.id, role: e.target.value })}
-                                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-[10px] font-black text-zinc-100 outline-none focus:border-violet-700 transition-all uppercase italic cursor-pointer appearance-none shadow-inner"
+                                                onChange={(e) => member.user && updateRoleMutation.mutate({ userId: member.user.id, role: e.target.value })}
+                                                className="bg-zinc-900 border border-white/[0.08] rounded-lg text-zinc-300 text-xs px-2 py-1.5 cursor-pointer focus:outline-none focus:border-violet-500/50 transition-colors appearance-none"
                                             >
                                                 <option value="member">Member</option>
                                                 <option value="officer">Officer</option>
                                                 {currentUserRole === 'creator' && <option value="admin">Admin</option>}
                                             </select>
-                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                                                <svg className="w-3 h-3 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
+                                        ) : (
+                                            getRoleBadge(member.role)
+                                        )}
+                                    </td>
+                                    <td className="py-4 px-6 text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            {canManage(member.role, member.user?.id || 0) && (
+                                                <button
+                                                    onClick={() => {
+                                                        if(confirm(`Исключить игрока ${member.user?.profile?.family_name}?`)) kickMutation.mutate(member.user!.id);
+                                                    }}
+                                                    className="opacity-0 group-hover:opacity-100 text-zinc-700 hover:text-rose-400 hover:bg-rose-500/10 p-1.5 rounded-lg transition-all duration-200"
+                                                    title="Удалить"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <span className={`text-[9px] font-black uppercase px-4 py-1.5 rounded-xl border italic tracking-[0.15em] shadow-sm ${
-                                            member.role === 'creator' ? 'bg-amber-900/20 text-amber-500 border-amber-800/50' :
-                                            member.role === 'admin' ? 'bg-violet-900/20 text-violet-400 border-violet-800/50' :
-                                            member.role === 'officer' ? 'bg-zinc-800 text-zinc-400 border-zinc-700/50' :
-                                            'bg-zinc-950 text-zinc-600 border-zinc-800/50'
-                                        }`}>
-                                            {member.role}
-                                        </span>
-                                    )}
-                                </td>
-
-                                <td className="py-5 px-6 bg-zinc-950/40 rounded-r-[1.5rem] border-r border-y border-zinc-800/40 group-hover/row:border-violet-700/40 group-hover/row:bg-zinc-900/60 transition-all text-right">
-                                    {member.user?.id && canManage(member.role, member.user.id) && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if(confirm(`Исключить игрока ${member.user?.profile?.family_name}?`)) kickMutation.mutate(member.user!.id);
-                                            }}
-                                            className="w-10 h-10 flex items-center justify-center bg-rose-950/20 hover:bg-rose-700 text-rose-700 hover:text-white rounded-xl border border-rose-900/30 transition-all group/kick active:scale-95 shadow-lg shadow-rose-900/5"
-                                            title="Исключить"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    )}
-                                    {member.user?.id === currentUserId && (
-                                        <span className="text-[8px] font-black text-emerald-500/50 uppercase tracking-widest italic pr-2">Это вы</span>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <PlayerProfileModal 

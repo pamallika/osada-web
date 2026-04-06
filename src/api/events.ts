@@ -6,6 +6,7 @@ export interface Participant {
     family_name: string;
     global_name?: string | null;
     char_class: string;
+    avatar_url?: string | null;
     status: 'confirmed' | 'declined' | 'unknown';
     verification_status?: 'incomplete' | 'pending' | 'verified' | 'updated';
 }
@@ -20,6 +21,7 @@ export interface Squad {
 
 export interface EventUser {
     id: number;
+    avatar_url?: string | null;
     profile?: {
         family_name?: string;
         global_name?: string | null;

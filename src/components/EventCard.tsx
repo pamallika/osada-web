@@ -10,72 +10,71 @@ interface EventCardProps {
 
 const statusLabels: Record<Event['status'], string> = {
     draft: 'Черновик',
-    published: 'Активен',
-    completed: 'Завершен',
-    cancelled: 'Отменен',
+    published: 'Активно',
+    completed: 'Завершено',
+    cancelled: 'Отменено',
     archived: 'Архив'
-};
-
-const statusColors: Record<Event['status'], string> = {
-    draft: 'bg-amber-900/20 text-amber-500 border-amber-800/50',
-    published: 'bg-emerald-900/20 text-emerald-500 border-emerald-800/50',
-    completed: 'bg-zinc-800/50 text-zinc-400 border-zinc-700/50',
-    cancelled: 'bg-rose-900/20 text-rose-500 border-rose-800/50',
-    archived: 'bg-zinc-900/50 text-zinc-500 border-zinc-800/50'
 };
 
 export const EventCard: FC<EventCardProps> = ({ event, onClick }) => {
     const startDate = new Date(event.start_at);
+    const confirmedCount = event.stats?.total_confirmed || 0;
+    const totalSlots = event.stats?.total_slots || 1;
+    const progress = Math.min(100, (confirmedCount / totalSlots) * 100);
     
     return (
         <div 
             onClick={() => onClick?.(event)}
-            className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800/50 relative overflow-hidden group cursor-pointer transition-all hover:border-violet-700/50 active:scale-[0.98] select-none"
+            className="group bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-5 hover:border-white/10 hover:bg-zinc-900/70 transition-all duration-300 cursor-pointer shadow-lg"
         >
-            <div className="relative z-10">
-                <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <span className="text-[10px] font-black text-violet-500 uppercase tracking-[0.3em] italic">Событие</span>
-                        <h3 className="text-2xl font-black mt-1 text-zinc-100 uppercase italic tracking-tighter group-hover:text-violet-400 transition-colors">
-                            {event.name}
-                        </h3>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
-                            {format(startDate, 'd MMMM yyyy, HH:mm', { locale: ru })}
-                        </p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${statusColors[event.status]}`}>
+            <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Событие</span>
+                {event.status === 'published' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)] animate-pulse" />
+                        Активно
+                    </span>
+                ) : event.status === 'draft' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-semibold uppercase tracking-wider">
+                        Черновик
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-800/50 border border-white/5 text-zinc-500 text-[10px] font-semibold uppercase tracking-wider">
                         {statusLabels[event.status]}
                     </span>
-                </div>
-
-                {event.stats && (
-                    <div className="space-y-3">
-                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                            <span className="text-zinc-500">Заполнено мест</span>
-                            <span className="text-zinc-100">
-                                {event.stats.total_confirmed} <span className="text-zinc-500">/</span> {event.stats.total_slots}
-                            </span>
-                        </div>
-                        <div className="w-full bg-zinc-950 rounded-full h-1.5 overflow-hidden border border-zinc-800/30">
-                            <div 
-                                className="bg-violet-700 h-full rounded-full transition-all duration-1000"
-                                style={{ width: `${Math.min(100, (event.stats.total_confirmed / (event.stats.total_slots || 1)) * 100)}%` }}
-                            ></div>
-                        </div>
-                    </div>
                 )}
+            </div>
 
-                <div className="mt-8 flex items-center gap-3">
-                    <div className="bg-zinc-950/50 text-zinc-400 py-2 px-4 rounded-lg text-[9px] font-black uppercase tracking-widest italic border border-zinc-800/50 truncate max-w-[200px]">
-                        {event.description || 'Без описания'}
-                    </div>
-                    <div className="flex-1"></div>
-                    <div className="w-8 h-8 rounded-lg bg-violet-700/20 border border-violet-700/30 flex items-center justify-center text-violet-400 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
+            <h3 className="text-xl font-bold tracking-tight text-white mb-1 group-hover:text-white transition-colors">
+                {event.name}
+            </h3>
+            <p className="text-sm text-zinc-500 mb-4 tabular-nums">
+                {format(startDate, 'd MMMM yyyy, HH:mm', { locale: ru })}
+            </p>
+
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Заполнено слотов</span>
+                    <span className="text-xs font-semibold tabular-nums">
+                        <span className="text-violet-400">{confirmedCount}</span>
+                        <span className="text-zinc-600"> / {totalSlots === 1 ? '—' : totalSlots}</span>
+                    </span>
                 </div>
+                <div className="h-1.5 bg-zinc-800/80 rounded-full overflow-hidden border border-white/5">
+                    <div 
+                        className="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full transition-all duration-1000" 
+                        style={{ width: `${progress}%` }} 
+                    />
+                </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between">
+                <span className="text-xs text-zinc-600 truncate max-w-[160px]">
+                    {event.description || 'Без описания'}
+                </span>
+                <span className="text-xs text-violet-400 font-medium group-hover:text-violet-300 transition-colors flex items-center gap-1">
+                    Открыть <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                </span>
             </div>
         </div>
     );

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { User } from '../../api/types';
+import { getMediaUrl } from '../../lib/utils';
 
 interface AvatarProps {
     user?: Partial<User> | null;
@@ -17,7 +18,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 'md', className = '' }) =>
         '2xl': 'w-32 h-32 text-4xl',
     };
 
-    const avatarUrl = user?.avatar_url || 
+    const avatarUrl = getMediaUrl(user?.avatar_url) || 
         user?.linked_accounts?.find(a => a.provider === 'discord')?.avatar ||
         user?.linked_accounts?.find(a => a.provider === 'telegram')?.avatar;
 

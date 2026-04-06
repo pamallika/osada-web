@@ -3,6 +3,24 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { guildApi } from '../api/guilds';
 import { authApi } from '../api/auth';
+import { Skeleton } from '../components/ui/Skeleton';
+import { getMediaUrl } from '../lib/utils';
+
+const getInviteErrorMessage = (error: string): string => {
+    const messages: Record<string, string> = {
+        'You must leave your current guild or cancel your pending application before applying to a new one.':
+            'Вы уже состоите в гильдии или имеете активную заявку. Покиньте текущую гильдию перед вступлением в новую.',
+        'Guild not found':
+            'Гильдия не найдена. Возможно, ссылка устарела или была деактивирована.',
+        'Guild is full':
+            'В гильдии нет свободных мест. Обратитесь к лидеру гильдии.',
+        'Already applied':
+            'Вы уже подали заявку в эту гильдию. Ожидайте решения лидера.',
+        'Already a member':
+            'Вы уже являетесь участником этой гильдии.',
+    };
+    return messages[error] || 'Произошла ошибка при обработке приглашения. Попробуйте позже.';
+};
 
 const InviteHandler = () => {
     const { slug } = useParams();
@@ -37,7 +55,6 @@ const InviteHandler = () => {
     useEffect(() => {
         if (!slug) return;
 
-        // Сохраняем инвайт в localStorage для восстановления контекста после логина/онбординга
         localStorage.setItem('pending_invite', slug);
 
         if (!authToken) {
@@ -45,14 +62,12 @@ const InviteHandler = () => {
             return;
         }
 
-        // Если залогинен, но нет family_name - AuthGuard сам редиректнет на onboarding.
-        // Когда пользователь вернется на /invite/:slug после онбординга, мы продолжим здесь.
         if (!user?.profile?.family_name) {
             return;
         }
 
         fetchInviteInfo();
-    }, [slug, authToken, !!user?.profile?.family_name, navigate]);
+    }, [slug, authToken, !!user?.profile?.family_name]);
 
     const handleApply = async () => {
         if (!slug) return;
@@ -61,7 +76,6 @@ const InviteHandler = () => {
             await guildApi.applyToGuild(slug);
             localStorage.removeItem('pending_invite');
             
-            // Обновляем данные пользователя
             const updatedUser = await authApi.getMe();
             setUser(updatedUser);
             
@@ -78,10 +92,20 @@ const InviteHandler = () => {
 
     if (status === 'loading') {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white font-sans">
-                <div className="flex flex-col items-center gap-6">
-                    <div className="w-16 h-16 border-4 border-violet-700 border-t-transparent rounded-2xl animate-spin shadow-xl shadow-violet-900/20"></div>
-                    <p className="text-xl font-black uppercase italic tracking-widest text-zinc-100">Проверка инвайта...</p>
+            <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden">
+                <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/8 blur-[100px] rounded-full pointer-events-none" />
+                <div className="relative w-full max-w-sm">
+                    <div className="bg-zinc-900/80 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-8 text-center animate-pulse">
+                        <div className="flex justify-center mb-5">
+                            <Skeleton className="w-20 h-20 rounded-2xl bg-white/5" />
+                        </div>
+                        <Skeleton className="h-7 w-48 mx-auto mb-2 bg-white/5" />
+                        <Skeleton className="h-4 w-32 mx-auto mb-6 bg-white/5" />
+                        <Skeleton className="h-4 w-full mx-auto mb-2 bg-white/5 opacity-50" />
+                        <Skeleton className="h-4 w-2/3 mx-auto mb-8 bg-white/5 opacity-50" />
+                        <Skeleton className="h-12 w-full rounded-xl mb-3 bg-white/5" />
+                        <Skeleton className="h-12 w-full rounded-xl bg-white/5 opacity-50" />
+                    </div>
                 </div>
             </div>
         );
@@ -89,44 +113,62 @@ const InviteHandler = () => {
 
     if (status === 'confirm' && inviteInfo) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white p-4 font-sans">
-                <div className="bg-zinc-900 p-10 rounded-[2.5rem] border border-zinc-800/50 shadow-2xl max-w-md w-full text-center relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-violet-700"></div>
-                    
-                    <div className="w-24 h-24 bg-zinc-950 rounded-[2rem] mx-auto mb-6 flex items-center justify-center border border-zinc-800 overflow-hidden">
-                        {inviteInfo.logo_url ? (
-                            <img src={inviteInfo.logo_url} alt={inviteInfo.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-4xl font-black italic text-violet-500">{inviteInfo.name.charAt(0).toUpperCase()}</span>
-                        )}
-                    </div>
+            <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden">
+                <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/8 blur-[100px] rounded-full pointer-events-none" />
+                
+                <div className="relative w-full max-w-sm animate-in fade-in zoom-in-95 duration-300">
+                    <div className="absolute -inset-px rounded-3xl bg-gradient-to-b from-violet-500/40 to-transparent pointer-events-none" />
 
-                    <h1 className="text-3xl font-black text-zinc-100 uppercase italic tracking-tighter mb-2">{inviteInfo.name}</h1>
-                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-8 italic">
-                        Участников: <span className="text-zinc-300">{inviteInfo.members_count}</span>
-                    </p>
+                    <div className="relative bg-zinc-900/80 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-8 text-center shadow-2xl shadow-black/50 overflow-hidden">
+                        <div className="flex justify-center mb-5">
+                            <div className="w-20 h-20 rounded-2xl overflow-hidden ring-2 ring-white/10 shadow-xl shadow-black/40 bg-zinc-950 flex items-center justify-center">
+                                {inviteInfo.logo_url ? (
+                                    <img src={getMediaUrl(inviteInfo.logo_url)} alt={inviteInfo.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-3xl font-bold text-violet-500">{inviteInfo.name.charAt(0).toUpperCase()}</span>
+                                )}
+                            </div>
+                        </div>
 
-                    <p className="text-zinc-400 text-sm font-medium leading-relaxed mb-10 text-balance">
-                        Вы получили приглашение вступить в гильдию. Хотите подать заявку?
-                    </p>
+                        <h1 className="text-2xl font-bold tracking-tight text-white mb-1">
+                            {inviteInfo.name}
+                        </h1>
 
-                    <div className="space-y-3">
-                        <button 
-                            onClick={handleApply}
-                            disabled={processing}
-                            className="w-full bg-violet-700 hover:bg-violet-600 disabled:opacity-50 text-white font-black py-4 rounded-2xl transition-all uppercase tracking-widest text-[10px] italic shadow-xl shadow-violet-900/10"
-                        >
-                            {processing ? 'Подача заявки...' : 'Вступить в гильдию'}
-                        </button>
-                        <button 
-                            onClick={() => {
-                                localStorage.removeItem('pending_invite');
-                                navigate('/dashboard');
-                            }}
-                            className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-black py-4 rounded-2xl transition-all uppercase tracking-widest text-[10px] italic"
-                        >
-                            На главную
-                        </button>
+                        <div className="inline-flex items-center gap-1.5 mb-6">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+                            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
+                                {inviteInfo.members_count} участников
+                            </span>
+                        </div>
+
+                        <p className="text-sm text-zinc-400 leading-relaxed mb-8">
+                            Вы получили приглашение вступить в гильдию.<br />
+                            Хотите подать заявку на вступление?
+                        </p>
+
+                        <div className="space-y-3">
+                            <button 
+                                onClick={handleApply}
+                                disabled={processing}
+                                className="w-full py-3 rounded-xl bg-white text-zinc-900 hover:bg-zinc-100 font-semibold text-sm shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all duration-200 active:scale-[0.98] disabled:opacity-50"
+                            >
+                                {processing ? (
+                                    <div className="flex items-center justify-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-zinc-400/30 border-t-zinc-900 rounded-full animate-spin" />
+                                        Подача заявки...
+                                    </div>
+                                ) : 'Вступить в гильдию'}
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    localStorage.removeItem('pending_invite');
+                                    navigate('/dashboard');
+                                }}
+                                className="w-full py-3 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-white/[0.08] text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-all"
+                            >
+                                На главную
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -134,28 +176,45 @@ const InviteHandler = () => {
     }
 
     if (status === 'error') {
+        const errorMessage = getInviteErrorMessage(error || '');
         return (
-            <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white p-4 font-sans">
-                <div className="bg-zinc-900 p-10 rounded-[2.5rem] border border-rose-900/30 shadow-2xl max-w-md w-full text-center">
-                    <div className="w-20 h-20 bg-rose-900/20 rounded-full flex items-center justify-center text-rose-500 text-4xl mx-auto mb-6">
-                        ⚠️
-                    </div>
-                    <h1 className="text-2xl font-black text-zinc-100 uppercase italic mb-4 tracking-tight">Ошибка инвайта</h1>
-                    <p className="text-zinc-500 text-sm font-medium mb-8 leading-relaxed max-w-xs mx-auto">{error}</p>
-                    
-                    <div className="space-y-3">
-                        <button 
-                            onClick={fetchInviteInfo}
-                            className="w-full bg-violet-700 hover:bg-violet-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] italic transition-all shadow-xl shadow-violet-900/20"
-                        >
-                            Попробовать снова
-                        </button>
-                        <button 
-                            onClick={() => navigate('/dashboard')}
-                            className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] italic transition-all"
-                        >
-                            На главную
-                        </button>
+            <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden">
+                <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-rose-600/5 blur-[100px] rounded-full pointer-events-none" />
+
+                <div className="relative w-full max-w-sm animate-in fade-in zoom-in-95 duration-300">
+                    <div className="absolute -inset-px rounded-3xl bg-gradient-to-b from-rose-500/30 to-transparent pointer-events-none" />
+
+                    <div className="relative bg-zinc-900/80 backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-8 text-center shadow-2xl shadow-black/50">
+                        <div className="flex justify-center mb-5">
+                            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+                                <svg className="w-8 h-8 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <h1 className="text-xl font-bold tracking-tight text-white mb-3">
+                            Ошибка приглашения
+                        </h1>
+
+                        <p className="text-sm text-zinc-400 leading-relaxed mb-8">
+                            {errorMessage}
+                        </p>
+
+                        <div className="space-y-3">
+                            <button 
+                                onClick={fetchInviteInfo}
+                                className="w-full py-3 rounded-xl bg-white text-zinc-900 hover:bg-zinc-100 font-semibold text-sm shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all duration-200 active:scale-[0.98]"
+                            >
+                                Попробовать снова
+                            </button>
+                            <button 
+                                onClick={() => navigate('/dashboard')}
+                                className="w-full py-3 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-white/[0.08] text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-all"
+                            >
+                                На главную
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -164,16 +223,20 @@ const InviteHandler = () => {
 
     if (status === 'success') {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white p-4 font-sans">
-                <div className="bg-zinc-900 p-10 rounded-[2.5rem] border border-emerald-900/30 shadow-2xl max-w-md w-full text-center">
-                    <div className="w-20 h-20 bg-emerald-900/20 rounded-full flex items-center justify-center text-emerald-500 text-4xl mx-auto mb-6">
-                        ✅
+            <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden text-zinc-200">
+                <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-600/5 blur-[100px] rounded-full pointer-events-none" />
+                
+                <div className="bg-zinc-900/80 backdrop-blur-2xl p-10 rounded-3xl border border-emerald-900/30 shadow-2xl max-w-sm w-full text-center relative z-10 animate-in fade-in zoom-in-95 duration-300">
+                    <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-500 mx-auto mb-6 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
                     </div>
-                    <h1 className="text-2xl font-black text-zinc-100 uppercase italic mb-4 tracking-tight">Заявка подана!</h1>
-                    <p className="text-zinc-500 text-sm font-medium mb-8 leading-relaxed">
+                    <h1 className="text-xl font-bold tracking-tight text-white mb-3">Заявка подана!</h1>
+                    <p className="text-sm text-zinc-400 leading-relaxed mb-8">
                         Вы успешно подали заявку в гильдию. Ожидайте решения офицеров.
                     </p>
-                    <div className="w-full bg-zinc-950 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-zinc-950/60 h-1.5 rounded-full overflow-hidden border border-white/5">
                         <div className="bg-emerald-500 h-full animate-[progress_2s_ease-in-out]"></div>
                     </div>
                 </div>

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Event, EventUser, Participant, Squad } from '../api/events';
 import { useAuthStore } from '../store/useAuthStore';
 import { SquadParticipantsModal } from './SquadParticipantsModal';
+import { cn } from '../lib/utils';
 
 interface SystemStatusBlocksProps {
     event: Event;
@@ -14,7 +15,7 @@ interface SystemStatusBlocksProps {
 }
 
 export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({ 
-    event, onKick, onDecline, 
+    event, onDecline, 
     isOfficer 
 }) => {
     const { user } = useAuthStore();
@@ -31,7 +32,7 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({
     });
 
     const pendingSquad: Squad = {
-        id: -1, // Virtual ID
+        id: -1,
         name: 'Не определились',
         limit: 0,
         is_system: true,
@@ -39,116 +40,96 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({
     };
 
     const declinedSquad: Squad = {
-        id: -2, // Virtual ID
+        id: -2,
         name: 'Пропустят',
         limit: 0,
         is_system: true,
         participants: (event.declined_users || []).map(u => mapUserToParticipant(u, 'declined'))
     };
 
-    const renderBlock = (squad: Squad, title: string, colorClass: string, icon: React.ReactNode) => {
+    const renderBlock = (squad: Squad, title: string, status: 'pending' | 'declined') => {
         const count = squad.participants?.length || 0;
-        const isDeclinedBlock = squad.id === -2;
+        const isDeclined = status === 'declined';
 
         return (
             <div 
-                className={`bg-zinc-900 p-6 rounded-[2rem] border transition-all relative overflow-hidden group/sys ${
-                    isDeclinedBlock && isUserDeclined ? 'ring-1 ring-rose-900/50 border-rose-800/50' : 'border-zinc-800/50 hover:border-zinc-700 shadow-lg shadow-zinc-950/20'
-                }`}
+                className={cn(
+                    "bg-zinc-900/40 backdrop-blur-xl border rounded-2xl p-4 transition-all duration-300 relative group/sys overflow-hidden",
+                    isDeclined && isUserDeclined ? "border-rose-500/40 ring-1 ring-rose-500/20 bg-rose-950/10" : "border-white/[0.06] hover:border-white/10"
+                )}
             >
-                <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
-                    {icon}
-                </div>
-                
-                <div className="flex justify-between items-start mb-6">
-                    <div className="cursor-pointer flex-1" onClick={() => setViewingSystemGroup({ squad, title })}>
-                        <h3 className={`text-lg font-black uppercase italic tracking-tight flex items-center gap-2 ${colorClass}`}>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="cursor-pointer" onClick={() => setViewingSystemGroup({ squad, title })}>
+                        <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+                            <span className={cn(
+                                "w-2 h-2 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)]",
+                                status === 'pending' ? "bg-amber-400 shadow-amber-500/50 animate-pulse" : "bg-rose-500 shadow-rose-500/50"
+                            )} />
                             {title}
                         </h3>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
-                            Участников: {count}
-                        </p>
+                        <p className="text-[10px] text-zinc-600 font-medium mt-1">Участников: {count}</p>
                     </div>
-                    
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                        {isDeclinedBlock && !isUserDeclined && (
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); onDecline?.(); }}
-                                className="h-7 px-3 bg-rose-700 hover:bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest italic rounded-lg transition-all flex items-center justify-center border border-rose-600/50 shadow-lg shadow-rose-900/20"
-                            >
-                                Я не приду
-                            </button>
-                        )}
-                        {isDeclinedBlock && isUserDeclined && (
-                            <span className="text-[8px] font-black uppercase tracking-widest text-rose-500 bg-rose-950/30 px-2 py-1 rounded border border-rose-900/20">
-                                Пропускаю
-                            </span>
-                        )}
-                        {!isDeclinedBlock && (
-                            <span className={`text-[10px] font-black px-2 py-1 rounded border uppercase tracking-widest ${colorClass} bg-opacity-10 border-opacity-30`}>
-                                System
-                            </span>
+
+                    <div className="flex items-center gap-2">
+                        {isDeclined && (
+                            <>
+                                {!isUserDeclined ? (
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); onDecline?.(); }}
+                                        className="px-2.5 py-1 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-semibold transition-all hover:bg-rose-500/20"
+                                    >
+                                        Не приду
+                                    </button>
+                                ) : (
+                                    <span className="px-2.5 py-1 rounded-md bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[10px] font-semibold">
+                                        Пропускаю
+                                    </span>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
 
-                <div className="space-y-2 mb-6">
+                <div className="space-y-1 mb-4">
                     {squad.participants?.slice(0, 3).map((p, idx) => (
-                        <div key={idx} className="flex items-center text-sm p-2 bg-zinc-950/50 rounded-xl border border-zinc-800/30">
-                            <div className={`w-1 h-1 rounded-full mr-3 ${colorClass.replace('text-', 'bg-')}`}></div>
-                            <div className="flex flex-col min-w-0">
-                                <span className={`font-semibold text-xs uppercase tracking-tight truncate ${p.user_id === user?.id ? 'text-emerald-400 font-black' : 'text-zinc-100'}`}>
-                                    {p.family_name}
-                                </span>
-                            </div>
+                        <div key={idx} className="text-xs py-1 px-2 rounded-md text-zinc-400 bg-white/[0.02]">
+                            {p.family_name}
                         </div>
                     ))}
                     
                     {count > 3 && (
-                        <div className="text-[9px] font-black text-zinc-600 uppercase tracking-widest text-center py-2 bg-zinc-950/20 rounded-xl border border-dashed border-zinc-800/30 italic">
-                            + еще {count - 3} участников
-                        </div>
+                        <button 
+                            onClick={() => setViewingSystemGroup({ squad, title })}
+                            className="w-full text-center py-1.5 text-[9px] font-bold text-zinc-600 uppercase tracking-widest hover:text-zinc-400 transition-colors"
+                        >
+                            + еще {count - 3}
+                        </button>
                     )}
 
                     {count === 0 && (
-                        <div className="flex items-center text-[10px] p-2 bg-zinc-950/20 rounded-xl border border-dashed border-zinc-800/30 opacity-40">
-                            <span className="text-zinc-600 font-bold uppercase tracking-widest italic mx-auto">Список пуст</span>
+                        <div className="text-[10px] text-center text-zinc-700 py-3 font-medium bg-zinc-950/20 rounded-xl border border-dashed border-white/[0.02]">
+                            Список пуст
                         </div>
                     )}
                 </div>
 
-                <div className="pt-4 border-t border-zinc-800/50 flex justify-between items-center">
-                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest italic group-hover:text-zinc-400 transition-colors">
-                        Подробнее
-                    </span>
-                    <svg className="w-4 h-4 text-zinc-600 group-hover:text-violet-500 transition-all group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
+                <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between cursor-pointer" onClick={() => setViewingSystemGroup({ squad, title })}>
+                    <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest group-hover:text-zinc-400 transition-colors">Подробнее</span>
+                    <span className="text-zinc-700 group-hover:text-violet-500 transition-transform group-hover:translate-x-0.5">→</span>
                 </div>
             </div>
         );
     };
 
     return (
-        <div className="flex flex-col gap-6 select-none">
-            {renderBlock(
-                pendingSquad, 
-                'Не определились', 
-                'text-amber-500', 
-                <span className="text-4xl font-black italic uppercase tracking-tighter scale-110">WAIT</span>
-            )}
-            {renderBlock(
-                declinedSquad, 
-                'Пропустят', 
-                'text-rose-500', 
-                <span className="text-4xl font-black italic uppercase tracking-tighter scale-110">SKIP</span>
-            )}
+        <div className="flex flex-col gap-4 select-none">
+            {renderBlock(pendingSquad, 'Не определились', 'pending')}
+            {renderBlock(declinedSquad, 'Пропустят', 'declined')}
 
             <SquadParticipantsModal 
                 squad={viewingSystemGroup?.squad || null} 
                 title={viewingSystemGroup?.title}
                 onClose={() => setViewingSystemGroup(null)} 
-                onKick={(viewingSystemGroup?.squad?.id === -1 || viewingSystemGroup?.squad?.id === -2) ? undefined : onKick}
                 isOfficer={isOfficer}
             />
         </div>

@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authApi } from '../../api/auth';
 import { toast } from '../Toaster';
-import Avatar from '../ui/Avatar';
+import { getMediaUrl } from '../../lib/utils';
 
 export const ProfileAvatar = () => {
     const { user, setUser } = useAuthStore();
@@ -39,39 +39,34 @@ export const ProfileAvatar = () => {
 
     return (
         <div 
-            className="relative group cursor-pointer"
+            className="relative group w-full aspect-square rounded-xl overflow-hidden mb-4 cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
-            tabIndex={0}
         >
-            <div className="w-32 h-32 md:w-40 md:h-40 bg-zinc-900 rounded-[2.5rem] mx-auto flex items-center justify-center text-zinc-700 overflow-hidden border border-zinc-800 transition-all duration-500 group-hover:scale-105 group-hover:border-violet-700/50 shadow-2xl shadow-black/50 relative">
-                <Avatar 
-                    user={user} 
-                    size="2xl" 
-                    className="w-full h-full border-none rounded-none transition-transform duration-700 group-hover:scale-110" 
+            {getMediaUrl(user?.avatar_url) ? (
+                <img 
+                    src={getMediaUrl(user.avatar_url)!} 
+                    alt={user.profile?.family_name || 'Avatar'} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 />
-
-                {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-violet-700/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                    <div className="bg-zinc-950/80 p-3 rounded-2xl border border-white/10 scale-90 group-hover:scale-100 transition-transform">
-                        <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </div>
+            ) : (
+                <div className="w-full h-full bg-zinc-800/80 border border-white/[0.08] rounded-xl flex flex-col items-center justify-center gap-2">
+                    <svg className="w-8 h-8 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="text-[10px] text-zinc-600 text-center px-4 font-medium">Нажми чтобы загрузить фото</span>
                 </div>
-
-                {isUploading && (
-                    <div className="absolute inset-0 bg-zinc-950/80 flex items-center justify-center">
-                        <div className="w-8 h-8 border-2 border-violet-700 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                )}
-            </div>
+            )}
             
-            <div className="mt-4 text-center">
-                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em] group-hover:text-violet-500 transition-colors">
-                    Нажми для смены фото
-                </p>
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl backdrop-blur-[2px]">
+                <span className="text-xs text-white font-medium">Изменить фото</span>
             </div>
+
+            {isUploading && (
+                <div className="absolute inset-0 bg-zinc-950/80 flex items-center justify-center rounded-xl">
+                    <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            )}
 
             <input
                 type="file"

@@ -65,9 +65,13 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-300 font-sans flex flex-col select-none pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        <div className="min-h-screen bg-[#09090b] text-zinc-300 font-sans flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] overflow-x-hidden">
+            {/* Ambient Glow */}
+            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] bg-violet-600/8 blur-[140px] rounded-full pointer-events-none z-0" />
+            <div className="fixed bottom-0 right-0 w-[500px] h-[300px] bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none z-0" />
+
             {/* Top Navigation Bar */}
-            <nav className="sticky top-0 z-[90] bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-800/50 shadow-2xl">
+            <nav className="sticky top-0 z-[100] bg-zinc-950/80 backdrop-blur-xl border-b border-white/[0.06] shadow-2xl">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <div className="flex items-center justify-between h-20">
                         {/* Logo and Brand */}
@@ -77,25 +81,25 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                                 onClick={() => syncUser()}
                                 className="flex items-center group"
                             >
-                                <span className="text-3xl font-black tracking-tighter uppercase italic group-hover:text-violet-500 transition-colors text-zinc-100">SAGE</span>
+                                <span className="text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-violet-300 uppercase italic">SAGE</span>
                             </Link>
 
                             {/* Desktop Menu */}
-                            <div className="hidden md:flex items-center gap-1 p-1 bg-zinc-950/50 rounded-xl border border-zinc-800/50">
+                            <div className="hidden md:flex items-center gap-6">
                                 {navLinks.map((link) => (
                                     <NavLink
                                         key={link.to}
                                         to={link.to}
                                         className={({ isActive }) => `
-                                                flex items-center gap-2 px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] italic transition-all relative
+                                                flex items-center gap-2 py-1.5 text-sm font-semibold transition-all relative
                                                 ${isActive
-                                                ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20'
-                                                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'}
+                                                ? 'text-white after:absolute after:-bottom-[28px] after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-violet-500'
+                                                : 'text-zinc-400 hover:text-zinc-200'}
                                             `}
                                     >
                                         {link.label}
                                         {link.badge && (
-                                            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-rose-600 text-[8px] font-black text-white rounded-full border-2 border-zinc-950 shadow-lg shadow-rose-900/30 not-italic">
+                                            <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] flex items-center justify-center bg-rose-600 text-[8px] font-black text-white rounded-full border-2 border-zinc-950 shadow-lg not-italic">
                                                 {link.badge}
                                             </span>
                                         )}
@@ -107,26 +111,26 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                         {/* Right side: Guild and Profile */}
                         <div className="flex items-center gap-4">
                             {activeGuild && (
-                                <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-zinc-950/50 rounded-lg border border-zinc-800/50">
+                                <div className="hidden lg:flex items-center gap-3 px-3 py-1.5 bg-zinc-900/50 rounded-lg border border-white/[0.04]">
                                     {activeGuild.logo_url && (
-                                        <img src={activeGuild.logo_url} alt="" className="w-5 h-5 rounded-md object-cover" />
+                                        <img src={activeGuild.logo_url} alt="" className="w-5 h-5 rounded object-cover" />
                                     )}
-                                    <span className="text-[10px] font-black text-zinc-100 uppercase tracking-widest truncate max-w-[120px]">
+                                    <span className="text-xs font-semibold text-zinc-100 truncate max-w-[120px]">
                                         {activeGuild.name}
                                     </span>
-                                    <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
+                                    <div className="flex items-center gap-2 pl-2 border-l border-white/[0.06]">
                                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
-                                        <span className="text-[9px] font-black text-emerald-500/80 uppercase tracking-tighter italic">
+                                        <span className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-tighter italic">
                                             LIVE: {onlineCount}
                                         </span>
                                     </div>
                                 </div>
                             )}
 
-                            <Link to="/profile" className="flex items-center gap-3 p-1.5 pr-4 bg-zinc-900 rounded-xl border border-zinc-800/50 hover:border-violet-700 transition-all group">
+                            <Link to="/profile" className="flex items-center gap-3 p-1.5 pr-4 bg-zinc-900/50 rounded-xl border border-white/[0.04] hover:bg-zinc-900 transition-all group">
                                 <Avatar user={user} size="md" className="group-hover:scale-105 transition-transform" />
                                 <div className="hidden sm:block">
-                                    <div className="text-[10px] font-black text-zinc-100 group-hover:text-violet-400 transition-colors uppercase italic tracking-tight leading-none">
+                                    <div className="text-[14px] font-semibold text-zinc-200 group-hover:text-white transition-colors tracking-tight leading-none">
                                         {user?.profile?.family_name || user?.profile?.global_name || 'Участник'}
                                     </div>
                                 </div>
@@ -135,10 +139,10 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                             {!isTMA && (
                                 <button
                                     onClick={logout}
-                                    className="p-3 bg-zinc-900 rounded-lg border border-zinc-800/50 text-rose-800 hover:bg-rose-800 hover:text-rose-100 transition-all group"
+                                    className="p-2.5 bg-zinc-900/50 rounded-lg border border-white/[0.04] text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400 transition-all"
                                     title="Выйти"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                     </svg>
                                 </button>
