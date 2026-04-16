@@ -136,7 +136,7 @@ export const MemberDashboardView: FC = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 select-none">
             {/* Guild Header */}
             <div className="flex items-center gap-4 mb-8">
-                <div 
+                <div
                     className={`relative group ${canManageGuild ? 'cursor-pointer' : ''}`}
                     onClick={() => canManageGuild && fileInputRef.current?.click()}
                 >
@@ -147,7 +147,7 @@ export const MemberDashboardView: FC = () => {
                             <span>{guild?.name?.[0] || 'S'}</span>
                         )}
                         <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-[#09090b] shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                        
+
                         {canManageGuild && (
                             <div className="absolute inset-0 bg-violet-600/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
                                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -182,7 +182,7 @@ export const MemberDashboardView: FC = () => {
                             </span>
                         </div>
                     </div>
-                    <p className="text-sm text-zinc-500 mt-2">Участий в событиях за сезон</p>
+                    <p className="text-sm text-zinc-500 mt-2">Участий в событиях</p>
                 </div>
 
 
@@ -190,12 +190,12 @@ export const MemberDashboardView: FC = () => {
                 <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 ring-1 ring-white/[0.04] hover:border-white/10 hover:bg-zinc-900/70 transition-all duration-500">
                     <div>
                         <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600">Ссылка-приглашение</p>
-                        <h3 className="text-lg font-bold tracking-tight text-white mt-1">Вербовка в гильдию</h3>
+                        <h3 className="text-lg font-bold tracking-tight text-white mt-1">Приглашение в гильдию</h3>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 mt-4 relative">
                         {isEditingInvite ? (
-                             <div className="flex-1 flex gap-2 w-full">
+                            <div className="flex-1 flex gap-2 w-full">
                                 <input
                                     type="text"
                                     value={editInviteSlug}
@@ -211,13 +211,13 @@ export const MemberDashboardView: FC = () => {
                                 >
                                     {isSavingInvite ? '...' : 'OK'}
                                 </button>
-                             </div>
+                            </div>
                         ) : (
                             <>
                                 <div className="flex-1 bg-zinc-950/60 border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-zinc-500 font-mono truncate">
                                     {guild?.invite_slug ? `...invite/${guild.invite_slug}` : 'Нет ссылки'}
                                 </div>
-                                
+
                                 {canManageGuild && (
                                     <button
                                         onClick={handleEditInvite}
@@ -230,7 +230,7 @@ export const MemberDashboardView: FC = () => {
                                     </button>
                                 )}
 
-                                <button 
+                                <button
                                     onClick={() => guild?.invite_slug && handleCopyInvite(guild.invite_slug)}
                                     className="px-3 py-2 bg-zinc-800/60 hover:bg-zinc-700 border border-white/8 rounded-lg text-xs font-medium text-zinc-300 hover:text-white transition-all whitespace-nowrap"
                                 >
@@ -240,6 +240,32 @@ export const MemberDashboardView: FC = () => {
                         )}
                     </div>
                 </div>
+
+                {/* Privacy Setting Card (Only for Creators) */}
+                {user?.guild_memberships?.find(m => m.guild.id === guild?.id)?.role === 'creator' && (
+                    <div className="col-span-1 sm:col-span-2 bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 ring-1 ring-white/[0.04] flex items-center justify-between">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600">Настройки приватности</p>
+                            <h3 className="text-lg font-bold tracking-tight text-white mt-1">Публичный</h3>
+                            <p className="text-xs text-zinc-500 mt-1">Отображать гильдию в глобальном списке</p>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await guildApi.updatePrivacy(!guild?.is_public);
+                                    queryClient.invalidateQueries({ queryKey: ['memberDashboard'] });
+                                    addNotification('Настройки приватности обновлены', 'success');
+                                } catch (e) {
+                                    console.error(e);
+                                    addNotification('Ошибка обновления', 'error');
+                                }
+                            }}
+                            className={`w-12 h-6 rounded-full p-1 transition-colors relative ${guild?.is_public ? 'bg-violet-600' : 'bg-zinc-700'}`}
+                        >
+                            <div className={`w-4 h-4 rounded-full bg-white transition-transform ${guild?.is_public ? 'translate-x-6' : 'translate-x-0'}`} />
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Recuitment Section */}

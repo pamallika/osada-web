@@ -50,6 +50,7 @@ export interface Guild {
     logo_url: string | null;
     description: string | null;
     invite_slug: string | null;
+    is_public?: boolean;
     status: 'active' | 'inactive';
     members_count?: number;
 }
@@ -91,4 +92,33 @@ export interface Post {
 
 export interface PostMedia {
     url: string;
+}
+
+export interface PublicGuildList {
+    id: number;
+    name: string;
+    invite_slug: string | null;
+    logo_url: string | null;
+    members_count: number;
+}
+
+export interface PublicGuildProfile {
+    id: number;
+    name: string;
+    invite_slug: string | null;
+    logo_url: string | null;
+    creator_family_name: string | null;
+    members_count: number;
+}
+
+export interface PublicGuildMember {
+    family_name: string | null;
+    joined_at: string;
+    days_in_guild: number;
+}
+
+export interface GuildHistoryEvent {
+    action: 'join' | 'leave' | 'kick';
+    family_name: string | null;
+    created_at: string;
 }

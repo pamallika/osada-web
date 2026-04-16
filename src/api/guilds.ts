@@ -65,6 +65,14 @@ export const guildApi = {
         return data.data;
     },
 
+    updatePrivacy: async (is_public: boolean) => {
+        const { data } = await apiClient.post<ApiResponse<Guild>>('guilds/my/privacy', {
+            is_public,
+            _method: 'PATCH'
+        });
+        return data.data;
+    },
+
     getApplications: async () => {
         const { data } = await apiClient.get<ApiResponse<GuildMember[]>>('guilds/my/applications');
         return data.data;

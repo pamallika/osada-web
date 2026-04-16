@@ -23,42 +23,54 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
     const activeMembership = user?.guild_memberships?.find(m => m.status === 'active');
     const activeGuild = activeMembership?.guild;
 
-    const navLinks = [
+    const navLinks: Array<{ to: string; label: string; icon: ReactNode; badge?: ReactNode }> = [
         {
+            to: '/guilds', label: 'Гильдии', icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+            )
+        }
+    ];
+
+    if (user) {
+        navLinks.push({
             to: '/dashboard', label: 'Дашборд', icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
             ), badge: (activeMembership && ['creator', 'admin'].includes(activeMembership.role) && pendingApplicationsCount > 0) ? pendingApplicationsCount : null
-        },
-        {
+        });
+
+        if (activeMembership && ['creator', 'admin', 'officer'].includes(activeMembership.role)) {
+            navLinks.push({
+                to: '/integrations', label: 'Интеграции', icon: (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 00-1 1v1a2 2 0 11-4 0v-1a1 1 0 00-1-1H7a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H7a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                    </svg>
+                )
+            });
+            navLinks.push({
+                to: '/verifications', label: 'Верификация', icon: (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                )
+            });
+        }
+
+        navLinks.push({
             to: '/events', label: 'События', icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             )
-        },
-        {
+        });
+
+        navLinks.push({
             to: '/profile', label: 'Профиль', icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-            )
-        },
-    ];
-
-    if (activeMembership && ['creator', 'admin', 'officer'].includes(activeMembership.role)) {
-        navLinks.splice(2, 0, {
-            to: '/integrations', label: 'Интеграции', icon: (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 00-1 1v1a2 2 0 11-4 0v-1a1 1 0 00-1-1H7a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H7a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
-                </svg>
-            )
-        });
-        navLinks.splice(3, 0, {
-            to: '/verifications', label: 'Верификация', icon: (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             )
         });
@@ -127,25 +139,33 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                                 </div>
                             )}
 
-                            <Link to="/profile" className="flex items-center gap-3 p-1.5 pr-4 bg-zinc-900/50 rounded-xl border border-white/[0.04] hover:bg-zinc-900 transition-all group">
-                                <Avatar user={user} size="md" className="group-hover:scale-105 transition-transform" />
-                                <div className="hidden sm:block">
-                                    <div className="text-[14px] font-semibold text-zinc-200 group-hover:text-white transition-colors tracking-tight leading-none">
-                                        {user?.profile?.family_name || user?.profile?.global_name || 'Участник'}
-                                    </div>
-                                </div>
-                            </Link>
+                            {user ? (
+                                <>
+                                    <Link to="/profile" className="flex items-center gap-3 p-1.5 pr-4 bg-zinc-900/50 rounded-xl border border-white/[0.04] hover:bg-zinc-900 transition-all group">
+                                        <Avatar user={user} size="md" className="group-hover:scale-105 transition-transform" />
+                                        <div className="hidden sm:block">
+                                            <div className="text-[14px] font-semibold text-zinc-200 group-hover:text-white transition-colors tracking-tight leading-none">
+                                                {user?.profile?.family_name || user?.profile?.global_name || 'Участник'}
+                                            </div>
+                                        </div>
+                                    </Link>
 
-                            {!isTMA && (
-                                <button
-                                    onClick={logout}
-                                    className="p-2.5 bg-zinc-900/50 rounded-lg border border-white/[0.04] text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400 transition-all"
-                                    title="Выйти"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                    </svg>
-                                </button>
+                                    {!isTMA && (
+                                        <button
+                                            onClick={logout}
+                                            className="p-2.5 bg-zinc-900/50 rounded-lg border border-white/[0.04] text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400 transition-all"
+                                            title="Выйти"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </>
+                            ) : (
+                                <Link to="/login" className="px-4 py-2 bg-white text-zinc-900 text-xs font-bold rounded-lg uppercase tracking-widest hover:bg-zinc-200 transition-colors">
+                                    Войти
+                                </Link>
                             )}
 
                             {/* Mobile Menu Toggle */}
