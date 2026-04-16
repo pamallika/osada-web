@@ -112,6 +112,14 @@ export const eventsApi = {
         return response.data.data;
     },
 
+    reorderSquads: async (eventId: number, ids: number[]) => {
+        const response = await apiClient.post<ApiResponse<void>>(`events/${eventId}/squads/reorder`, {
+            ids,
+            _method: 'PATCH'
+        });
+        return response.data.data;
+    },
+
     joinEvent: async (eventId: number, squadId: number | null) => {
         const response = await apiClient.post<ApiResponse<{ status: string; squad_id: number }>>(`events/${eventId}/join`, {
             squad_id: squadId

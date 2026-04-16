@@ -223,6 +223,20 @@ const EventDetailsPage: FC = () => {
         }
     };
 
+    const handleReorderSquads = async (ids: number[]) => {
+        if (isArchived || !isAdmin) return;
+        setIsProcessing(true);
+        try {
+            await eventsApi.reorderSquads(event.id, ids);
+            refetch();
+        } catch (err: any) {
+            console.error(err);
+            throw err;
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     return (
         <div className="min-h-screen p-4 md:p-10 select-none animate-in fade-in duration-500">
             <div className="max-w-7xl mx-auto">
@@ -318,6 +332,7 @@ const EventDetailsPage: FC = () => {
                             onAddSquad={handleAddSquad}
                             onUpdateSquad={handleUpdateSquad}
                             onDeleteSquad={handleDeleteSquad}
+                            onReorderSquads={handleReorderSquads}
                             isOfficer={isOfficer && !isArchived}
                             isAdmin={isAdmin && !isArchived}
                         />

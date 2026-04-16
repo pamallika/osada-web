@@ -167,5 +167,13 @@ export const guildApi = {
             }
         });
         return data.data;
+    },
+
+    reorderPosts: async (ids: number[]) => {
+        const { data } = await apiClient.post<ApiResponse<void>>(`guilds/my/posts/reorder`, {
+            ids,
+            _method: 'PATCH'
+        });
+        return data.data;
     }
 };
