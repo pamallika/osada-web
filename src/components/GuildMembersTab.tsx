@@ -91,7 +91,9 @@ export const GuildMembersTab: React.FC<GuildMembersTabProps> = ({ currentUserId,
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight text-white">Состав гильдии</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-white">
+                    Состав гильдии <span className="text-zinc-500 text-lg">({members?.length || 0})</span>
+                </h2>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse" />
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Live</span>

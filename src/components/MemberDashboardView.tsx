@@ -108,8 +108,8 @@ export const MemberDashboardView: FC = () => {
                         <Skeleton className="h-5 w-28" />
                     </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-36 rounded-2xl" />)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[1, 2].map(i => <Skeleton key={i} className="h-36 rounded-2xl" />)}
                 </div>
                 <div className="space-y-4">
                     <Skeleton className="h-8 w-48 rounded-lg" />
@@ -171,7 +171,7 @@ export const MemberDashboardView: FC = () => {
             </div>
 
             {/* Stats Triple Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Participation Card */}
                 <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 ring-1 ring-white/[0.04] hover:border-white/10 hover:bg-zinc-900/70 transition-all duration-500 flex flex-col justify-between">
                     <div>
@@ -185,32 +185,6 @@ export const MemberDashboardView: FC = () => {
                     <p className="text-sm text-zinc-500 mt-2">Участий в событиях за сезон</p>
                 </div>
 
-                {/* Upcoming Event Card */}
-                <div 
-                    onClick={() => next_event && navigate(`/events/${next_event.id}`)}
-                    className={`bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 ring-1 ring-white/[0.04] hover:border-white/10 hover:bg-zinc-900/70 transition-all duration-500 flex flex-col justify-between ${next_event ? 'cursor-pointer' : 'opacity-80'}`}
-                >
-                    {next_event ? (
-                        <>
-                            <div>
-                                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-violet-500/10 border border-violet-500/20 text-violet-300 text-[9px] font-semibold uppercase tracking-wider">
-                                    Ближайшее событие
-                                </div>
-                                <h3 className="text-2xl font-bold tracking-tight text-white mt-4 line-clamp-1">{next_event.name}</h3>
-                                <p className="text-sm text-zinc-400 mt-0.5 tabular-nums">
-                                    {format(new Date(next_event.start_at), 'd MMMM, HH:mm', { locale: ru })}
-                                </p>
-                            </div>
-                            <div className="mt-4 flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-semibold">
-                                Управление записью →
-                            </div>
-                        </>
-                    ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
-                             <p className="text-xs font-medium text-zinc-500">Нет активных записей</p>
-                        </div>
-                    )}
-                </div>
 
                 {/* Invite Link Card */}
                 <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 ring-1 ring-white/[0.04] hover:border-white/10 hover:bg-zinc-900/70 transition-all duration-500">

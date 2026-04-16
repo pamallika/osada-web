@@ -204,18 +204,16 @@ const SquadCardBase: FC<SquadCardBaseProps> = ({
                                     </span>
                                 )}
                             </div>
-                            <span className="truncate text-zinc-300 group-hover/p:text-white transition-colors">{p.family_name || p.global_name || 'Участник'}</span>
+                            <span className="truncate text-zinc-300 group-hover/p:text-white transition-colors">
+                                {p.family_name || p.global_name || 'Участник'}
+                                {p.char_class && <span className="text-zinc-500 text-[10px] ml-1">({p.char_class})</span>}
+                            </span>
                             {p.verification_status === 'verified' && (
                                 <svg className="w-2.5 h-2.5 text-emerald-500/60" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
                             )}
                         </div>
-                        {p.char_class && (
-                            <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-950/50 border border-white/[0.03]">
-                                {p.char_class}
-                            </span>
-                        )}
                     </div>
                 ))}
                 {currentParticipants === 0 && (
