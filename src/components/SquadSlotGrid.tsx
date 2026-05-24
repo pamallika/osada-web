@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { SquadParticipantsModal } from './SquadParticipantsModal';
 import { SquadFormModal } from './SquadFormModal';
+import Avatar from './ui/Avatar';
 import { cn, getMediaUrl } from '../lib/utils';
 import {
     DndContext,
@@ -195,15 +196,14 @@ const SquadCardBase: FC<SquadCardBaseProps> = ({
                         )}
                     >
                          <div className="flex items-center gap-2 truncate">
-                            <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0 bg-zinc-800 ring-1 ring-white/10 flex items-center justify-center">
-                                {(p as any).avatar_url ? (
-                                    <img src={getMediaUrl((p as any).avatar_url)!} className="w-full h-full object-cover" alt="" />
-                                ) : (
-                                    <span className="text-[8px] text-zinc-500 font-bold">
-                                        {(p.family_name || p.global_name || 'У').charAt(0).toUpperCase()}
-                                    </span>
-                                )}
-                            </div>
+                            <Avatar 
+                                user={{ 
+                                    avatar_url: (p as any).avatar_url, 
+                                    profile: { family_name: p.family_name || '?', global_name: p.global_name, char_class: p.char_class } as any
+                                }} 
+                                size="xs"
+                                className="ring-1 ring-white/10"
+                            />
                             <span className="truncate text-zinc-300 group-hover/p:text-white transition-colors">
                                 {p.family_name || p.global_name || 'Участник'}
                                 {p.char_class && <span className="text-zinc-500 text-[10px] ml-1">({p.char_class})</span>}

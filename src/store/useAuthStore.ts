@@ -16,7 +16,7 @@ interface LinkedAccount {
     provider_id: string;
     username: string;
     display_name: string | null;
-    avatar: string | null;
+    avatar: string | null; // Полный абсолютный URL
 }
 
 interface Guild {
@@ -35,7 +35,7 @@ interface GuildMembership {
 interface User {
     id: number;
     email: string;
-    has_password: boolean;
+    avatar_url: string | null;
     profile?: Profile;
     linked_accounts?: LinkedAccount[];
     guild_memberships?: GuildMembership[];

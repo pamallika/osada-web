@@ -69,15 +69,15 @@ export const SquadParticipantsModal: FC<SquadParticipantsModalProps> = ({ squad,
                                     onClick={() => setSelectedUserId(p.user_id)}
                                     className="flex-1 flex items-center gap-4 cursor-pointer"
                                 >
-                                    <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center overflow-hidden shrink-0">
-                                        {(p as any).avatar_url ? (
-                                            <img src={getMediaUrl((p as any).avatar_url)!} className="w-full h-full object-cover" alt="" />
-                                        ) : (
-                                            <span className="text-zinc-500 font-bold uppercase">
-                                                {(p.family_name || p.global_name || '?').charAt(0).toUpperCase()}
-                                            </span>
-                                        )}
-                                    </div>
+                                    <Avatar 
+                                        user={{ 
+                                            avatar_url: (p as any).avatar_url, 
+                                            name: p.family_name || p.global_name || 'Участник',
+                                            profile: { family_name: p.family_name || '?', global_name: p.global_name, char_class: p.char_class } as any
+                                        }} 
+                                        size="sm"
+                                        className="shrink-0"
+                                    />
                                     <div className="flex flex-col min-w-0">
                                         <span className="font-semibold text-zinc-100 uppercase italic tracking-tight truncate group-hover:text-violet-400 transition-colors text-sm">
                                             {p.family_name || p.global_name || 'Участник'}

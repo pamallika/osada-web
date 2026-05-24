@@ -5,6 +5,7 @@ import { Skeleton } from './ui/Skeleton';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { getMediaUrl } from '../lib/utils';
+import Avatar from './ui/Avatar';
 
 export const GuildApplicationsList: React.FC = () => {
     const queryClient = useQueryClient();
@@ -65,13 +66,14 @@ export const GuildApplicationsList: React.FC = () => {
                         <div key={app.id} className="bg-zinc-900/60 border border-white/[0.06] rounded-xl p-4 hover:border-white/10 transition-all duration-300 group shadow-lg ring-1 ring-white/[0.02]">
                             {/* Header */}
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-9 h-9 rounded-full bg-zinc-800 ring-1 ring-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                    {app.user?.profile?.avatar_url ? (
-                                        <img src={getMediaUrl(app.user.profile.avatar_url)!} className="w-full h-full object-cover" alt="" />
-                                    ) : (
-                                        <span className="text-sm font-semibold text-zinc-400 capitalize">{app.user?.profile?.family_name?.[0] || 'U'}</span>
-                                    )}
-                                </div>
+                                <Avatar 
+                                    user={{ 
+                                        avatar_url: app.user?.profile?.avatar_url, 
+                                        profile: app.user?.profile as any
+                                    }} 
+                                    size="sm"
+                                    className="ring-1 ring-white/10"
+                                />
                                 <div className="min-w-0">
                                     <p className="text-sm font-semibold text-zinc-200 truncate">{app.user?.profile?.family_name || 'Неизвестный'}</p>
                                     <p className="text-[10px] text-zinc-500 mt-0.5 font-medium tabular-nums">

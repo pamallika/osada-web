@@ -9,7 +9,7 @@ export interface User {
     email: string | null;
     name: string;
     has_password: boolean;
-    avatar_url: string | null;
+    avatar_url: string | null; // Полный абсолютный URL через asset()
     profile: UserProfile;
     linked_accounts?: LinkedAccount[];
     guild_memberships?: GuildMembership[];
@@ -41,7 +41,7 @@ export interface LinkedAccount {
     provider_id: string;
     username: string | null;
     display_name: string | null;
-    avatar: string | null;
+    avatar: string | null; // Полный абсолютный URL через asset()
 }
 
 export interface Guild {

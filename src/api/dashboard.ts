@@ -15,7 +15,7 @@ export interface DashboardMemberData {
 export interface DashboardAnalyticsData {
     activity: {
         fill_rate: number; // %
-        top_players: { id: number; name: string; confirmed_count: number; avatar: string | null }[];
+        top_players: { id: number; name: string; confirmed_count: number; avatar: string | null }[]; // All active players ordered by count
     };
     meta: {
         class_distribution: { class: string; count: number }[];

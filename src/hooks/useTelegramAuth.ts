@@ -51,7 +51,9 @@ export const useTelegramAuth = () => {
 
         try {
             // PKCE: Generate Verifier and Challenge (Hash)
-            const verifier = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            const array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            const verifier = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
             const verifierHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))
                 .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''));
 

@@ -7,8 +7,10 @@ import {
     ResponsiveContainer 
 } from 'recharts';
 import { Skeleton } from './ui/Skeleton';
+import Avatar from './ui/Avatar';
+import { ActivityLeadersModal } from './ActivityLeadersModal';
 
-const PERIODS = [7, 14, 30];
+const PERIODS = [7, 14, 30, 0];
 
 const COLORS = [
     '#7c3aed', // violet-600
@@ -26,6 +28,7 @@ interface AnalyticsDashboardViewProps {
 
 export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmin = false }) => {
     const [period, setPeriod] = useState(7);
+    const [showLeadersModal, setShowLeadersModal] = useState(false);
     const { data, isLoading, error } = useAnalyticsDashboard(period);
 
     if (isLoading) {
@@ -89,7 +92,7 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                                 period === p ? 'text-white bg-white/10 ring-1 ring-white/10 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                         >
-                            {p} дней
+                            {p === 0 ? 'Все время' : `${p} дней`}
                         </button>
                     ))}
                 </div>
@@ -127,21 +130,32 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
 
                 {/* Activity Leaders */}
                 <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-500">Лидеры активности</p>
-                        <span className="text-[10px] font-semibold text-zinc-600 uppercase">Top 10 за период</span>
+                    <div 
+                        className="flex items-center justify-between mb-6 cursor-pointer group/title select-none"
+                        onClick={() => setShowLeadersModal(true)}
+                    >
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-500 group-hover/title:text-amber-400 transition-colors">Лидеры активности</p>
+                        <div className="flex items-center gap-1.5 text-zinc-600 group-hover/title:text-zinc-300 transition-all">
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Топ 10</span>
+                            <div className="w-5 h-5 rounded-lg bg-zinc-800/50 flex items-center justify-center border border-white/5 group-hover/title:bg-zinc-700 transition-colors">
+                                <svg className="w-3.5 h-3.5 group-hover/title:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                     <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
-                        {activity.top_players.map((player, idx) => (
+                        {activity.top_players.slice(0, 10).map((player, idx) => (
                             <div key={player.id} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/[0.03] transition-colors group">
                                 <span className="w-5 text-right text-[11px] text-zinc-700 font-mono tabular-nums flex-shrink-0">{idx + 1}.</span>
-                                <div className="w-7 h-7 rounded-full bg-zinc-800 ring-1 ring-white/10 flex-shrink-0 overflow-hidden">
-                                    {player.avatar ? (
-                                        <img src={player.avatar} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span className="w-full h-full flex items-center justify-center text-[10px] text-zinc-500 font-medium">{player.name[0]}</span>
-                                    )}
-                                </div>
+                                <Avatar 
+                                    user={{ 
+                                        avatar_url: player.avatar, 
+                                        profile: { family_name: player.name } as any
+                                    }} 
+                                    size="sm" // roughly 28px/w-7
+                                    className="w-7 h-7 ring-1 ring-white/10"
+                                />
                                 <span className="flex-1 text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors truncate">{player.name}</span>
                                 <div className="flex items-center gap-1">
                                     <span className="text-sm font-semibold text-zinc-200 tabular-nums">{player.confirmed_count}</span>
@@ -149,6 +163,19 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                                 </div>
                             </div>
                         ))}
+                    </div>
+
+                    {/* View All Button Action */}
+                    <div className="mt-6 pt-4 border-t border-white/[0.04]">
+                        <button 
+                            onClick={() => setShowLeadersModal(true)}
+                            className="w-full py-3 rounded-xl bg-zinc-800/40 hover:bg-zinc-800/80 border border-white/5 text-zinc-400 hover:text-white text-[10px] font-black uppercase tracking-[0.2em] italic flex items-center justify-center gap-3 transition-all group/btn"
+                        >
+                            <svg className="w-4 h-4 text-amber-500/60 group-hover/btn:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            </svg>
+                            Показать всех
+                        </button>
                     </div>
                 </div>
             </div>
@@ -204,7 +231,7 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                 </div>
 
                 {/* Dynamics (Area) */}
-                {isAdmin && (
+                {isAdmin && period !== 0 && (
                     <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-8 flex flex-col min-h-[400px]">
                         <div className="flex items-center justify-between mb-8">
                             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-500">Динамика состава</p>
@@ -264,6 +291,13 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                     </div>
                 )}
             </div>
+
+            {showLeadersModal && (
+                <ActivityLeadersModal 
+                    data={activity.top_players} 
+                    onClose={() => setShowLeadersModal(false)} 
+                />
+            )}
         </div>
     );
 };

@@ -5,7 +5,7 @@ import { eventsApi } from '../api/events';
 import { useAuthStore } from '../store/useAuthStore';
 import { EventCard } from '../components/EventCard';
 import { CreateEventModal } from '../components/CreateEventModal';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '../components/ui/Skeleton';
 
@@ -48,9 +48,18 @@ const EventListPage: FC = () => {
     if (!activeGuildId) {
         return (
             <div className="p-4 md:p-10 flex items-center justify-center min-h-[60vh]">
-                <div className="text-center bg-zinc-900/40 backdrop-blur-xl p-10 rounded-[2.5rem] border border-white/[0.06] shadow-2xl max-w-md">
+                <div className="text-center bg-zinc-900/40 backdrop-blur-xl p-10 rounded-[2.5rem] border border-white/[0.06] shadow-2xl max-w-md animate-in fade-in zoom-in duration-500">
                     <h2 className="text-2xl font-bold text-white tracking-tight mb-4">Гильдия не найдена</h2>
-                    <p className="text-sm text-zinc-500 leading-relaxed">Пожалуйста, вступите в гильдию или создайте свою для доступа к событиям.</p>
+                    <p className="text-sm text-zinc-500 leading-relaxed mb-8">Пожалуйста, вступите в гильдию или создайте свою для доступа к событиям.</p>
+                    <Link
+                        to="/guilds"
+                        className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-8 py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-violet-900/20 transition-all active:scale-[0.98] group"
+                    >
+                        <svg className="w-5 h-5 text-violet-200 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        Найти гильдию
+                    </Link>
                 </div>
             </div>
         );
