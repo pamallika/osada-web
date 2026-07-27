@@ -171,16 +171,18 @@ export const GearSection = () => {
             {/* Garmoth Mode View */}
             {gearSource === 'garmoth' && (
                 <div className="bg-zinc-950/40 border border-white/[0.06] rounded-2xl p-6 space-y-6 animate-in fade-in duration-300">
-                    <div className="flex items-start justify-between gap-4">
-                        <div>
-                            <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-wider">Привязка профиля Garmoth</h3>
-                            <p className="text-xs text-zinc-500 mt-1">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div className="space-y-1">
+                            <div className="flex items-center flex-wrap gap-2">
+                                <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-wider">Привязка профиля Garmoth</h3>
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                                    Авто-синхронизация
+                                </span>
+                            </div>
+                            <p className="text-xs text-zinc-500">
                                 Укажите публичную ссылку на ваш персонаж на сервере Garmoth.com. Статистика (AP, AAP, DP) подтянется автоматически.
                             </p>
                         </div>
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[10px] font-bold uppercase tracking-wider shrink-0">
-                            Авто-синхронизация
-                        </span>
                     </div>
 
                     <div className="space-y-2">
@@ -196,11 +198,11 @@ export const GearSection = () => {
                                 disabled={isPending}
                                 className="flex-1 bg-zinc-900 border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-700 outline-none focus:border-violet-500/50 transition-all disabled:opacity-50"
                             />
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 w-full">
                                 <button
                                     onClick={handleSaveGarmoth}
                                     disabled={isSavingGarmoth || isPending}
-                                    className="px-5 py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-2 shrink-0"
+                                    className="flex-1 py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-2 text-center"
                                 >
                                     {isSavingGarmoth ? (
                                         <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -212,7 +214,7 @@ export const GearSection = () => {
                                     <button
                                         onClick={handleRefreshGarmoth}
                                         disabled={isRefreshing || isPending}
-                                        className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-zinc-200 text-xs font-semibold rounded-xl border border-white/5 transition-all flex items-center justify-center gap-1.5 shrink-0"
+                                        className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-zinc-200 text-xs font-semibold rounded-xl border border-white/5 transition-all flex items-center justify-center gap-1.5 text-center"
                                         title="Синхронизировать данные"
                                     >
                                         <svg className={cn("w-4 h-4", isRefreshing && "animate-spin")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -311,10 +313,10 @@ export const GearSection = () => {
             )}
 
             {/* Submit for Verification Button */}
-            <div className="mt-8 flex justify-end">
+            <div className="mt-8 w-full">
                 {isPending ? (
-                    <div className="bg-zinc-950/40 border border-white/[0.06] rounded-xl p-4 flex items-center gap-3 text-zinc-400">
-                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-zinc-500">
+                    <div className="bg-zinc-950/40 border border-white/[0.06] rounded-xl p-4 flex items-center gap-3 text-zinc-400 w-full justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-zinc-500 shrink-0">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <p className="text-xs">
@@ -325,14 +327,14 @@ export const GearSection = () => {
                     <button
                         onClick={submitForVerification}
                         disabled={isUploading || (gearSource === 'manual' ? !allUploaded : !user?.profile?.garmoth_url)}
-                        className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white px-8 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-violet-900/30 transition-all duration-200 active:scale-[0.98]"
+                        className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white px-8 py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-violet-900/30 transition-all duration-200 active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed text-center"
                     >
                         {isUploading ? (
                             <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
                         ) : (
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         )}
-                        {isVerified ? 'Подать на перепроверку' : 'Подать на верификацию'}
+                        <span>{isVerified ? 'Подать на перепроверку' : 'Подать на верификацию'}</span>
                     </button>
                 )}
             </div>

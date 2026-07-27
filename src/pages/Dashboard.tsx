@@ -91,10 +91,10 @@ export default function Dashboard() {
             <div className="space-y-6 select-none animate-in fade-in duration-500">
                 {/* Tabs & Top Actions */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                    <div className="flex gap-1 p-1 bg-zinc-900/60 backdrop-blur-xl border border-white/[0.06] rounded-xl w-fit shadow-xl ring-1 ring-white/[0.04]">
+                    <div className="flex gap-1 p-1 bg-zinc-900/60 backdrop-blur-xl border border-white/[0.06] rounded-xl max-w-full overflow-x-auto no-scrollbar scrollbar-none whitespace-nowrap shadow-xl ring-1 ring-white/[0.04]">
                         <button
                             onClick={() => setActiveTab('overview')}
-                            className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                            className={`px-4 sm:px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0 ${
                                 activeTab === 'overview' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                         >
@@ -102,7 +102,7 @@ export default function Dashboard() {
                         </button>
                         <button
                             onClick={() => setActiveTab('members')}
-                            className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                            className={`px-4 sm:px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0 ${
                                 activeTab === 'members' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                         >
@@ -110,7 +110,7 @@ export default function Dashboard() {
                         </button>
                         <button
                             onClick={() => setActiveTab('knowledge')}
-                            className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                            className={`px-4 sm:px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0 ${
                                 activeTab === 'knowledge' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                         >
@@ -119,7 +119,7 @@ export default function Dashboard() {
                         {isManagement && (
                             <button
                                 onClick={() => setActiveTab('analytics')}
-                                className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                                className={`px-4 sm:px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0 ${
                                     activeTab === 'analytics' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
                                 }`}
                             >
@@ -129,7 +129,7 @@ export default function Dashboard() {
                         {canSeeApplications && (
                             <button
                                 onClick={() => setActiveTab('applications')}
-                                className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                                className={`px-4 sm:px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5 ${
                                     activeTab === 'applications' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
                                 }`}
                             >

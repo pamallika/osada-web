@@ -41,6 +41,7 @@ export const SquadCardBase: FC<SquadCardBaseProps> = ({
     const amIInThisSquad = squad.participants?.some((p: Participant) => p.user_id === user?.id);
     const canJoin = !amIInThisSquad && !isFull && event.status === 'published';
     const canManageParticipants = isOfficer || isAdmin;
+    const availableSquads = (event?.squads || []).filter(s => !s.is_system);
 
     return (
         <div
@@ -154,6 +155,35 @@ export const SquadCardBase: FC<SquadCardBaseProps> = ({
                             e.stopPropagation();
                         }}
                         onClick={() => { if (!isOverlay) setSelectedUserId(p.user_id); }}
+                        action={
+                            canManageParticipants && onMoveUser && !isOverlay ? (
+                                <select
+                                    defaultValue=""
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(e) => {
+                                        e.stopPropagation();
+                                        const val = e.target.value;
+                                        if (!val) return;
+                                        const targetSquadId = val === 'pending' ? null : parseInt(val);
+                                        onMoveUser(p.user_id, targetSquadId);
+                                        e.target.value = "";
+                                    }}
+                                    className="bg-zinc-950/90 border border-zinc-700/60 hover:border-zinc-500 text-zinc-300 text-[10px] rounded-lg px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer max-w-[90px] truncate shrink-0"
+                                >
+                                    <option value="" disabled>⇄ Отряд</option>
+                                    {squad.id !== -1 && (
+                                        <option value="pending">Запас</option>
+                                    )}
+                                    {availableSquads.map((s) => (
+                                        s.id !== squad.id && (
+                                            <option key={s.id} value={s.id.toString()}>
+                                                {s.name}
+                                            </option>
+                                        )
+                                    ))}
+                                </select>
+                            ) : undefined
+                        }
                         className={cn(
                             p.user_id === user?.id && "bg-violet-500/10 ring-1 ring-violet-500/20 text-violet-300"
                         )}

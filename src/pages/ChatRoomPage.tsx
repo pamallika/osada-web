@@ -148,7 +148,7 @@ export const ChatRoomPage: FC = () => {
         // Listen for message deletion
         channel.listen('.ChatMessageDeleted', (e: { chat_id: number; message_id: number }) => {
             if (e.chat_id === chatId) {
-                setMessages(prev => prev.map(m => m.id === e.message_id ? { ...m, is_deleted: true, content: null, media_url: null } : m));
+                setMessages(prev => prev.map(m => m.id === e.message_id ? { ...m, is_deleted: true, content: null, media_url: null, media_urls: null } : m));
             }
         });
 
@@ -180,8 +180,8 @@ export const ChatRoomPage: FC = () => {
         setTimeout(() => scrollToBottom(), 50);
     };
 
-    const handleSendMediaMessage = async (file: File, content?: string) => {
-        const newMessage = await chatApi.sendMediaMessage(chatId, file, content);
+    const handleSendMediaMessage = async (files: File[], content?: string) => {
+        const newMessage = await chatApi.sendMediaMessage(chatId, files, content);
         setMessages(prev => [...prev, newMessage]);
         chatApi.markChatRead(chatId, newMessage.id).catch(console.error);
         setTimeout(() => scrollToBottom(), 50);
@@ -195,7 +195,7 @@ export const ChatRoomPage: FC = () => {
     const handleDeleteMessage = async (messageId: number) => {
         if (confirm('Удалить сообщение?')) {
             await chatApi.deleteMessage(chatId, messageId);
-            setMessages(prev => prev.map(m => m.id === messageId ? { ...m, is_deleted: true, content: null, media_url: null } : m));
+            setMessages(prev => prev.map(m => m.id === messageId ? { ...m, is_deleted: true, content: null, media_url: null, media_urls: null } : m));
         }
     };
 
@@ -216,7 +216,7 @@ export const ChatRoomPage: FC = () => {
     const title = chat?.type === 'system' ? 'Общий чат' : (chat?.name || 'Чат');
 
     return (
-        <div className="flex flex-col h-[calc(100vh-80px)] max-w-5xl mx-auto border-x border-white/[0.04] bg-zinc-950/40 select-none">
+        <div className="flex flex-col h-[calc(100dvh-148px)] md:h-[calc(100dvh-80px)] max-w-5xl mx-auto border-x border-white/[0.04] bg-zinc-950/40 select-none">
             {/* Header */}
             <div className="h-16 px-4 border-b border-white/[0.06] bg-zinc-950/80 backdrop-blur-xl flex items-center justify-between shrink-0 z-20">
                 <div className="flex items-center gap-3 min-w-0">

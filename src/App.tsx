@@ -41,6 +41,12 @@ function App() {
                 // 1. Theme and Expansion & Synchronous TMA Deep Link Check
                 if (tma) {
                     tma.expand();
+                    if (typeof tma.setHeaderColor === 'function') {
+                        tma.setHeaderColor('#09090b');
+                    }
+                    if (typeof tma.setBackgroundColor === 'function') {
+                        tma.setBackgroundColor('#09090b');
+                    }
 
                     const startParam = tma.initDataUnsafe?.start_param;
                     if (startParam?.startsWith('event_')) {
@@ -121,7 +127,7 @@ function App() {
 
     return (
         <BrowserRouter>
-            <div className="min-h-screen bg-zinc-950 text-zinc-300">
+            <div className="min-h-screen bg-zinc-950 text-zinc-300 overflow-x-hidden w-full max-w-full relative">
                 <Routes>
                     {/* High-priority redirect for TMA deep links - only for root entry */}
                     {tmaRedirectPath && <Route path="/" element={<Navigate to={tmaRedirectPath} replace />} />}

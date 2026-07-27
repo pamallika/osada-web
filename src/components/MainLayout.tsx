@@ -97,10 +97,10 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
     }
 
     return (
-        <div className="min-h-screen bg-[#09090b] text-zinc-300 font-sans flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] overflow-x-hidden">
+        <div className="min-h-screen bg-[#09090b] text-zinc-300 font-sans flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] overflow-x-hidden max-w-full relative">
             {/* Ambient Glow */}
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] bg-violet-600/8 blur-[140px] rounded-full pointer-events-none z-0" />
-            <div className="fixed bottom-0 right-0 w-[500px] h-[300px] bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none z-0" />
+            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] max-w-full h-[400px] bg-violet-600/8 blur-[140px] rounded-full pointer-events-none z-0 overflow-hidden" />
+            <div className="fixed bottom-0 right-0 w-[500px] max-w-full h-[300px] bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none z-0 overflow-hidden" />
 
             {/* Top Navigation Bar */}
             <nav className="sticky top-0 z-[100] bg-zinc-950/80 backdrop-blur-xl border-b border-white/[0.06] shadow-2xl">
@@ -188,53 +188,44 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                                 </Link>
                             )}
 
-                            {/* Mobile Menu Toggle */}
-                            <button
-                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="md:hidden p-3 bg-zinc-900 rounded-lg border border-zinc-800/50 text-zinc-500"
-                            >
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-                                </svg>
-                            </button>
                         </div>
                     </div>
                 </div>
-
-                {/* Mobile Menu Dropdown */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden bg-zinc-900 border-b border-zinc-800/50 p-4 space-y-2 animate-in slide-in-from-top duration-300">
-                        {navLinks.map((link) => (
-                            <NavLink
-                                key={link.to}
-                                to={link.to}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className={({ isActive }) => `
-                                        flex items-center justify-between p-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] italic transition-all
-                                        ${isActive
-                                        ? 'bg-violet-700 text-white shadow-lg shadow-violet-900/20'
-                                        : 'text-zinc-500 bg-zinc-950/50 border border-zinc-800/50'}
-                                    `}
-                            >
-                                <div className="flex items-center gap-3">
-                                    {link.icon}
-                                    {link.label}
-                                </div>
-                                {link.badge && (
-                                    <span className="min-w-[18px] h-[18px] flex items-center justify-center bg-rose-600 text-[8px] font-black text-white rounded-full border-2 border-zinc-950 not-italic">
-                                        {link.badge}
-                                    </span>
-                                )}
-                            </NavLink>
-                        ))}
-                    </div>
-                )}
             </nav>
 
             {/* Content Area */}
-            <main className="flex-1 overflow-y-auto relative">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden max-w-full relative pb-20 md:pb-0">
                 {children}
             </main>
+
+            {/* Bottom Navigation Bar for Mobile / TMA */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/90 backdrop-blur-xl border-t border-white/[0.08] px-1 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] shadow-2xl select-none overflow-hidden max-w-full">
+                <div className="flex items-center justify-around w-full max-w-full">
+                    {navLinks.map((link) => (
+                        <NavLink
+                            key={link.to}
+                            to={link.to}
+                            className={({ isActive }) => `
+                                flex flex-col items-center justify-center flex-1 min-w-0 min-h-[44px] py-1 rounded-xl text-[9px] font-medium transition-all relative px-0.5
+                                ${isActive 
+                                    ? 'text-violet-400 font-bold' 
+                                    : 'text-zinc-500 hover:text-zinc-300'}
+                            `}
+                        >
+                            <div className="relative shrink-0">
+                                {link.icon}
+                                {link.badge && (
+                                    <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-[16px] px-1 flex items-center justify-center bg-rose-600 text-[8px] font-black text-white rounded-full border border-zinc-950">
+                                        {link.badge}
+                                    </span>
+                                )}
+                            </div>
+                            <span className="leading-none mt-1 tracking-tight truncate w-full text-center text-[8.5px] sm:text-[9px]">{link.label}</span>
+                        </NavLink>
+                    ))}
+                </div>
+            </nav>
+
             <Toaster />
         </div>
     );

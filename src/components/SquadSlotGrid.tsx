@@ -209,7 +209,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                 squad={viewingSquad} 
                 onClose={() => setViewingSquad(null)} 
                 onKick={onKick} 
-                isOfficer={isOfficer}
+                isOfficer={isOfficer || isAdmin}
                 event={event}
                 onMoveUser={onMoveUser}
             />

@@ -87,7 +87,7 @@ const RegisterPage = () => {
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 placeholder="your@email.com"
-                                className="w-full bg-zinc-950/60 border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all"
+                                className="w-full bg-zinc-950/60 border border-white/[0.08] rounded-xl px-4 py-3 text-base md:text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all"
                             />
                         </div>
 
@@ -101,7 +101,7 @@ const RegisterPage = () => {
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     placeholder="Минимум 8 символов"
-                                    className="w-full bg-zinc-950/60 border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all"
+                                    className="w-full bg-zinc-950/60 border border-white/[0.08] rounded-xl px-4 py-3 text-base md:text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all"
                                 />
                             </div>
                             <div>
@@ -112,7 +112,7 @@ const RegisterPage = () => {
                                     value={formData.password_confirmation}
                                     onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
                                     placeholder="Повторите пароль"
-                                    className="w-full bg-zinc-950/60 border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all"
+                                    className="w-full bg-zinc-950/60 border border-white/[0.08] rounded-xl px-4 py-3 text-base md:text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all"
                                 />
                             </div>
                         </div>

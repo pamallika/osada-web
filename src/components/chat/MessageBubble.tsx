@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import type { ChatMessage } from '../../api/types';
 import Avatar from '../ui/Avatar';
+import { AuthImage } from '../ui/AuthImage';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
@@ -18,12 +19,16 @@ export const MessageBubble: FC<MessageBubbleProps> = ({
     onEdit,
     onDelete,
 }) => {
-    const [showLightbox, setShowLightbox] = useState(false);
+    const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
     const [showMenu, setShowMenu] = useState(false);
 
     const formattedTime = message.created_at
         ? format(new Date(message.created_at), 'HH:mm', { locale: ru })
         : '';
+
+    const mediaList = message.media_urls && message.media_urls.length > 0
+        ? message.media_urls
+        : (message.media_url ? [message.media_url] : []);
 
     const handleCopy = () => {
         if (message.content) {
@@ -57,7 +62,7 @@ export const MessageBubble: FC<MessageBubbleProps> = ({
                 />
             )}
 
-            <div className={`relative max-w-[80%] sm:max-w-[70%] group/item ${isOwn ? 'items-end' : 'items-start'}`}>
+            <div className={`relative max-w-[85%] sm:max-w-[75%] group/item ${isOwn ? 'items-end' : 'items-start'}`}>
                 {/* Author Name */}
                 {!isOwn && (
                     <span className="text-[10px] font-semibold text-zinc-400 mb-1 block px-1">
@@ -73,15 +78,27 @@ export const MessageBubble: FC<MessageBubbleProps> = ({
                             : 'bg-zinc-900/80 border-white/[0.08] text-zinc-200 rounded-bl-xs'
                     }`}
                 >
-                    {/* Media Content */}
-                    {message.media_url && (
-                        <div className="mb-2 overflow-hidden rounded-xl border border-white/10 bg-black/40">
-                            <img
-                                src={message.media_url}
-                                alt="Attachment"
-                                className="max-h-64 w-full object-cover cursor-pointer hover:scale-[1.02] transition-transform"
-                                onClick={() => setShowLightbox(true)}
-                            />
+                    {/* Media Grid Content */}
+                    {mediaList.length > 0 && (
+                        <div className={`mb-2 grid gap-1.5 ${
+                            mediaList.length === 1
+                                ? 'grid-cols-1'
+                                : mediaList.length === 2
+                                ? 'grid-cols-2'
+                                : 'grid-cols-2 sm:grid-cols-3'
+                        }`}>
+                            {mediaList.map((url, idx) => (
+                                <div key={idx} className="overflow-hidden rounded-xl border border-white/10 bg-black/40">
+                                    <AuthImage
+                                        src={url}
+                                        alt={`Attachment ${idx + 1}`}
+                                        className={`w-full object-cover cursor-pointer hover:scale-[1.02] transition-transform ${
+                                            mediaList.length === 1 ? 'max-h-72' : 'h-28 sm:h-36'
+                                        }`}
+                                        onClick={() => setLightboxUrl(url)}
+                                    />
+                                </div>
+                            ))}
                         </div>
                     )}
 
@@ -154,21 +171,21 @@ export const MessageBubble: FC<MessageBubbleProps> = ({
             </div>
 
             {/* Lightbox Modal */}
-            {showLightbox && message.media_url && (
+            {lightboxUrl && (
                 <div
                     className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
-                    onClick={() => setShowLightbox(false)}
+                    onClick={() => setLightboxUrl(null)}
                 >
                     <button
                         className="absolute top-4 right-4 text-white p-2 rounded-full bg-zinc-900/80 hover:bg-zinc-800"
-                        onClick={() => setShowLightbox(false)}
+                        onClick={() => setLightboxUrl(null)}
                     >
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
-                    <img
-                        src={message.media_url}
+                    <AuthImage
+                        src={lightboxUrl}
                         alt="Enlarged"
                         className="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl"
                     />

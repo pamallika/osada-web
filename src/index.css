@@ -7,6 +7,13 @@
     color-scheme: dark;
   }
 
+  html, body, #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    position: relative;
+  }
+
   body {
     @apply bg-[#09090b] text-[#e4e4e7] antialiased selection:bg-violet-500/30 selection:text-violet-200;
     font-family: 'Inter', sans-serif;

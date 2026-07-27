@@ -49,9 +49,12 @@ export const chatApi = {
         return response.data.data;
     },
 
-    sendMediaMessage: async (chatId: number, file: File, content?: string): Promise<ChatMessage> => {
+    sendMediaMessage: async (chatId: number, files: File[] | File, content?: string): Promise<ChatMessage> => {
         const formData = new FormData();
-        formData.append('file', file);
+        const fileList = Array.isArray(files) ? files : [files];
+        fileList.forEach(f => {
+            formData.append('files[]', f);
+        });
         if (content) {
             formData.append('content', content);
         }

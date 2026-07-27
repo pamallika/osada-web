@@ -167,7 +167,8 @@ export interface ChatMessage {
     user_id: number;
     type: 'text' | 'image';
     content: string | null;
-    media_url: string | null;
+    media_url?: string | null;
+    media_urls: string[] | null;
     is_edited: boolean;
     is_deleted: boolean;
     user: {
