@@ -122,3 +122,65 @@ export interface GuildHistoryEvent {
     family_name: string | null;
     created_at: string;
 }
+
+// --- Система чатов ---
+
+export interface Chat {
+    id: number;
+    guild_id: number;
+    name: string | null;
+    type: 'system' | 'private';
+    creator_id: number | null;
+    members_count: number;
+    last_message: ChatMessage | null;
+    unread_count: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ChatDetail extends Chat {
+    members: ChatMember[];
+}
+
+export interface ChatMember {
+    user_id: number;
+    role: 'owner' | 'member';
+    joined_at: string;
+    user: {
+        id: number;
+        name: string;
+        avatar_url: string | null;
+        profile: {
+            family_name: string | null;
+            global_name: string | null;
+            char_class: string | null;
+        };
+        linked_accounts: LinkedAccount[];
+    };
+}
+
+export interface ChatMessage {
+    id: number;
+    chat_id: number;
+    user_id: number;
+    type: 'text' | 'image';
+    content: string | null;
+    media_url: string | null;
+    is_edited: boolean;
+    is_deleted: boolean;
+    user: {
+        id: number;
+        name: string;
+        avatar_url: string | null;
+        family_name: string | null;
+    };
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ChatMessageList {
+    messages: ChatMessage[];
+    has_more: boolean;
+    next_cursor: number | null;
+}
+

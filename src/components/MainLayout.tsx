@@ -5,6 +5,8 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useSyncUser } from '../hooks/useSyncUser';
 import { usePresence } from '../hooks/usePresence';
 import { useUserWebSockets } from '../hooks/useUserWebSockets';
+import { useQuery } from '@tanstack/react-query';
+import { chatApi } from '../api/chat';
 import Avatar from './ui/Avatar';
 import { Toaster } from './Toaster';
 
@@ -20,8 +22,14 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
 
     useUserWebSockets();
 
-    const activeMembership = user?.guild_memberships?.find(m => m.status === 'active');
-    const activeGuild = activeMembership?.guild;
+    const { data: userChats } = useQuery({
+        queryKey: ['chats'],
+        queryFn: () => chatApi.getChats(),
+        enabled: !!user,
+        refetchInterval: 15000,
+    });
+
+    const totalUnreadChats = userChats?.reduce((acc, c) => acc + (c.unread_count || 0), 0) || 0;
 
     const navLinks: Array<{ to: string; label: string; icon: ReactNode; badge?: ReactNode }> = [
         {
@@ -65,6 +73,15 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             )
+        });
+
+        navLinks.push({
+            to: '/chats', label: 'Чаты', icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+            ),
+            badge: totalUnreadChats > 0 ? totalUnreadChats : null
         });
 
         navLinks.push({
