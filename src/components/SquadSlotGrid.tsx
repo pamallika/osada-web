@@ -43,6 +43,7 @@ interface SquadCardBaseProps {
     squad: Squad;
     event: Event;
     user: any;
+    isOfficer?: boolean;
     isAdmin: boolean;
     onJoin: (squadId: number | null) => void;
     onMoveUser?: (userId: number, squadId: number | null) => void;
@@ -62,7 +63,7 @@ interface SquadCardBaseProps {
 }
 
 const SquadCardBase: FC<SquadCardBaseProps> = ({
-    squad, event, user, isAdmin,
+    squad, event, user, isOfficer, isAdmin,
     onJoin, onMoveUser, handleSquadAction,
     setViewingSquad, setSelectedUserId,
     dropTargetId, setDropTargetId,
@@ -75,13 +76,14 @@ const SquadCardBase: FC<SquadCardBaseProps> = ({
     
     const amIInThisSquad = squad.participants?.some((p: Participant) => p.user_id === user?.id);
     const canJoin = !amIInThisSquad && !isFull && event.status === 'published';
+    const canManageParticipants = isOfficer || isAdmin;
 
     return (
         <div
             ref={setNodeRef}
             style={style}
             onDragOver={(e) => {
-                if (!isAdmin || isOverlay) return;
+                if (!canManageParticipants || isOverlay) return;
                 e.preventDefault();
                 setDropTargetId(squad.id);
             }}
@@ -90,7 +92,7 @@ const SquadCardBase: FC<SquadCardBaseProps> = ({
                 setDropTargetId(null)
             }}
             onDrop={(e) => {
-                if (!isAdmin || isOverlay) return;
+                if (!canManageParticipants || isOverlay) return;
                 e.preventDefault();
                 setDropTargetId(null);
                 const userId = parseInt(e.dataTransfer.getData('userId') || '0');
@@ -178,9 +180,9 @@ const SquadCardBase: FC<SquadCardBaseProps> = ({
                 {squad.participants?.map((p: Participant, idx: number) => (
                     <div
                         key={idx}
-                        draggable={isAdmin && !isOverlay}
+                        draggable={canManageParticipants && !isOverlay}
                         onDragStart={(e) => {
-                            if (!isAdmin || isOverlay) return;
+                            if (!canManageParticipants || isOverlay) return;
                             e.dataTransfer.setData('userId', p.user_id.toString());
                             e.dataTransfer.effectAllowed = 'move';
                             e.stopPropagation();
@@ -192,7 +194,7 @@ const SquadCardBase: FC<SquadCardBaseProps> = ({
                                 ? "text-violet-300 bg-violet-500/10 ring-1 ring-violet-500/20"
                                 : "text-zinc-400",
                             !isOverlay && "hover:text-zinc-300 hover:bg-white/[0.03] cursor-pointer",
-                            isAdmin && !isOverlay && "cursor-grab active:cursor-grabbing"
+                            canManageParticipants && !isOverlay && "cursor-grab active:cursor-grabbing"
                         )}
                     >
                          <div className="flex items-center gap-2 truncate">
@@ -366,6 +368,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                                 squad={squad}
                                 event={event}
                                 user={user}
+                                isOfficer={isOfficer || false}
                                 isAdmin={isAdmin || false}
                                 onJoin={onJoin}
                                 onMoveUser={onMoveUser}
@@ -386,6 +389,7 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
                                 squad={activeSquad}
                                 event={event}
                                 user={user}
+                                isOfficer={isOfficer || false}
                                 isAdmin={isAdmin || false}
                                 isOverlay={true}
                                 onJoin={onJoin}
@@ -421,7 +425,14 @@ export const SquadSlotGrid: FC<SquadSlotGridProps> = ({
             </div>
 
             <PlayerProfileModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
-            <SquadParticipantsModal squad={viewingSquad} onClose={() => setViewingSquad(null)} onKick={onKick} isOfficer={isOfficer} />
+            <SquadParticipantsModal 
+                squad={viewingSquad} 
+                onClose={() => setViewingSquad(null)} 
+                onKick={onKick} 
+                isOfficer={isOfficer}
+                event={event}
+                onMoveUser={onMoveUser}
+            />
 
             <SquadFormModal
                 isOpen={isSquadModalOpen}

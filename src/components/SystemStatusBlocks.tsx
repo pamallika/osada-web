@@ -15,12 +15,15 @@ interface SystemStatusBlocksProps {
 }
 
 export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({ 
-    event, onDecline, 
-    isOfficer 
+    event, onKick, onDecline, onMoveUser, 
+    isOfficer, isAdmin 
 }) => {
     const { user } = useAuthStore();
     const [viewingSystemGroup, setViewingSystemGroup] = useState<{ squad: Squad, title: string } | null>(null);
+    const [isPendingExpanded, setIsPendingExpanded] = useState(false);
+    const [isPendingDropTarget, setIsPendingDropTarget] = useState(false);
 
+    const canManage = isOfficer || isAdmin;
     const isUserDeclined = event.declined_users?.some((u: EventUser) => u.id === user?.id);
 
     const mapUserToParticipant = (user: EventUser, status: 'confirmed' | 'declined' | 'unknown'): Participant => ({
@@ -50,12 +53,35 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({
     const renderBlock = (squad: Squad, title: string, status: 'pending' | 'declined') => {
         const count = squad.participants?.length || 0;
         const isDeclined = status === 'declined';
+        const isPending = status === 'pending';
+
+        const displayedParticipants = isPending && isPendingExpanded 
+            ? (squad.participants || []) 
+            : (squad.participants?.slice(0, 3) || []);
 
         return (
             <div 
+                onDragOver={(e) => {
+                    if (!isPending || !canManage) return;
+                    e.preventDefault();
+                    setIsPendingDropTarget(true);
+                }}
+                onDragLeave={() => {
+                    if (isPending) setIsPendingDropTarget(false);
+                }}
+                onDrop={(e) => {
+                    if (!isPending || !canManage) return;
+                    e.preventDefault();
+                    setIsPendingDropTarget(false);
+                    const userId = parseInt(e.dataTransfer.getData('userId') || '0');
+                    if (userId && onMoveUser) {
+                        onMoveUser(userId, null);
+                    }
+                }}
                 className={cn(
                     "bg-zinc-900/40 backdrop-blur-xl border rounded-2xl p-4 transition-all duration-300 relative group/sys overflow-hidden",
-                    isDeclined && isUserDeclined ? "border-rose-500/40 ring-1 ring-rose-500/20 bg-rose-950/10" : "border-white/[0.06] hover:border-white/10"
+                    isDeclined && isUserDeclined ? "border-rose-500/40 ring-1 ring-rose-500/20 bg-rose-950/10" : "border-white/[0.06] hover:border-white/10",
+                    isPending && isPendingDropTarget && "border-amber-400/50 ring-2 ring-amber-400/20 bg-amber-950/20 scale-[1.01]"
                 )}
             >
                 <div className="flex items-center justify-between mb-4">
@@ -63,7 +89,7 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({
                         <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
                             <span className={cn(
                                 "w-2 h-2 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)]",
-                                status === 'pending' ? "bg-amber-400 shadow-amber-500/50 animate-pulse" : "bg-rose-500 shadow-rose-500/50"
+                                isPending ? "bg-amber-400 shadow-amber-500/50 animate-pulse" : "bg-rose-500 shadow-rose-500/50"
                             )} />
                             {title}
                         </h3>
@@ -90,14 +116,51 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({
                     </div>
                 </div>
 
-                <div className="space-y-1 mb-4">
-                    {squad.participants?.slice(0, 3).map((p, idx) => (
-                        <div key={idx} className="text-xs py-1 px-2 rounded-md text-zinc-400 bg-white/[0.02]">
-                            {p.family_name}
+                <div className={cn(
+                    "space-y-1 mb-4",
+                    isPending && isPendingExpanded && "max-h-80 overflow-y-auto custom-scrollbar pr-1"
+                )}>
+                    {displayedParticipants.map((p, idx) => (
+                        <div 
+                            key={idx}
+                            draggable={isPending && canManage}
+                            onDragStart={(e) => {
+                                if (!isPending || !canManage) return;
+                                e.dataTransfer.setData('userId', p.user_id.toString());
+                                e.dataTransfer.effectAllowed = 'move';
+                                e.stopPropagation();
+                            }}
+                            className={cn(
+                                "text-xs py-1 px-2 rounded-md transition-all flex items-center justify-between text-zinc-400 bg-white/[0.02]",
+                                isPending && canManage && "cursor-grab active:cursor-grabbing hover:bg-white/[0.05] hover:text-zinc-200"
+                            )}
+                        >
+                            <span className="truncate">{p.family_name || p.global_name || 'Участник'}</span>
+                            {p.char_class && p.char_class !== 'Unknown' && (
+                                <span className="text-zinc-500 text-[10px] ml-1 shrink-0">({p.char_class})</span>
+                            )}
                         </div>
                     ))}
                     
-                    {count > 3 && (
+                    {isPending && count > 3 && (
+                        isPendingExpanded ? (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setIsPendingExpanded(false); }}
+                                className="w-full text-center py-1.5 text-[9px] font-bold text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition-colors bg-zinc-800/40 hover:bg-zinc-800/80 rounded-lg border border-white/5 mt-2"
+                            >
+                                Свернуть
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setIsPendingExpanded(true); }}
+                                className="w-full text-center py-1.5 text-[9px] font-bold text-amber-400/80 hover:text-amber-300 uppercase tracking-widest transition-colors bg-amber-500/5 hover:bg-amber-500/10 rounded-lg border border-amber-500/10 mt-1"
+                            >
+                                Показать всех ({count})
+                            </button>
+                        )
+                    )}
+
+                    {!isPending && count > 3 && (
                         <button 
                             onClick={() => setViewingSystemGroup({ squad, title })}
                             className="w-full text-center py-1.5 text-[9px] font-bold text-zinc-600 uppercase tracking-widest hover:text-zinc-400 transition-colors"
@@ -131,6 +194,8 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({
                 title={viewingSystemGroup?.title}
                 onClose={() => setViewingSystemGroup(null)} 
                 isOfficer={isOfficer}
+                event={event}
+                onMoveUser={onMoveUser}
             />
         </div>
     );

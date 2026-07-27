@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import type { Squad, Participant } from '../api/events';
+import type { Event, Squad, Participant } from '../api/events';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { useState } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
@@ -12,9 +12,13 @@ interface SquadParticipantsModalProps {
     onClose: () => void;
     onKick?: (userId: number) => Promise<void>;
     isOfficer?: boolean;
+    event?: Event;
+    onMoveUser?: (userId: number, squadId: number | null) => Promise<void>;
 }
 
-export const SquadParticipantsModal: FC<SquadParticipantsModalProps> = ({ squad, title, onClose, onKick, isOfficer }) => {
+export const SquadParticipantsModal: FC<SquadParticipantsModalProps> = ({ 
+    squad, title, onClose, onKick, isOfficer, event, onMoveUser 
+}) => {
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const { user: currentUser } = useAuthStore();
 
@@ -22,6 +26,7 @@ export const SquadParticipantsModal: FC<SquadParticipantsModalProps> = ({ squad,
 
     const participants = squad.participants || [];
     const displayTitle = title || squad.name;
+    const availableSquads = (event?.squads || []).filter(s => !s.is_system);
 
     return (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
@@ -63,11 +68,11 @@ export const SquadParticipantsModal: FC<SquadParticipantsModalProps> = ({ squad,
                         participants.map((p: Participant) => (
                             <div 
                                 key={p.user_id}
-                                className="flex items-center gap-4 p-3 bg-zinc-900/50 border border-zinc-800/50 rounded-2xl hover:border-zinc-700 transition-all group"
+                                className="flex items-center justify-between gap-3 p-3 bg-zinc-900/50 border border-zinc-800/50 rounded-2xl hover:border-zinc-700 transition-all group"
                             >
                                 <div 
                                     onClick={() => setSelectedUserId(p.user_id)}
-                                    className="flex-1 flex items-center gap-4 cursor-pointer"
+                                    className="flex-1 flex items-center gap-3 cursor-pointer min-w-0"
                                 >
                                     <Avatar 
                                         user={{ 
@@ -89,17 +94,45 @@ export const SquadParticipantsModal: FC<SquadParticipantsModalProps> = ({ squad,
                                     </div>
                                 </div>
 
-                                {isOfficer && onKick && p.user_id !== currentUser?.id && (
-                                    <button 
-                                        onClick={() => onKick(p.user_id)}
-                                        className="w-11 h-11 flex items-center justify-center rounded-xl bg-rose-900/10 text-rose-500 hover:bg-rose-800 hover:text-white transition-all border border-rose-800/30 shrink-0"
-                                        title="В запас / Исключить"
-                                    >
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                )}
+                                <div className="flex items-center gap-2 shrink-0">
+                                    {isOfficer && onMoveUser && (
+                                        <select
+                                            defaultValue=""
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (!val) return;
+                                                const targetSquadId = val === 'pending' ? null : parseInt(val);
+                                                onMoveUser(p.user_id, targetSquadId);
+                                                e.target.value = "";
+                                            }}
+                                            className="bg-zinc-900 border border-zinc-700/60 hover:border-zinc-500 text-zinc-300 text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer max-w-[140px] truncate"
+                                        >
+                                            <option value="" disabled>Переместить в...</option>
+                                            {squad.id !== -1 && (
+                                                <option value="pending">Не определились</option>
+                                            )}
+                                            {availableSquads.map((s) => (
+                                                s.id !== squad.id && (
+                                                    <option key={s.id} value={s.id.toString()}>
+                                                        {s.name}
+                                                    </option>
+                                                )
+                                            ))}
+                                        </select>
+                                    )}
+
+                                    {isOfficer && onKick && p.user_id !== currentUser?.id && (
+                                        <button 
+                                            onClick={() => onKick(p.user_id)}
+                                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-900/10 text-rose-500 hover:bg-rose-800 hover:text-white transition-all border border-rose-800/30 shrink-0"
+                                            title="В запас / Исключить"
+                                        >
+                                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         ))
                     ) : (
