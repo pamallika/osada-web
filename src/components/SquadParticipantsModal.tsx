@@ -71,7 +71,7 @@ export const SquadParticipantsModal: FC<SquadParticipantsModalProps> = ({
                                                     onMoveUser(p.user_id, targetSquadId);
                                                     e.target.value = "";
                                                 }}
-                                                className="bg-zinc-900 border border-zinc-700/60 hover:border-zinc-500 text-zinc-300 text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer max-w-[140px] truncate"
+                                                className="bg-zinc-900 border border-zinc-700/60 hover:border-zinc-500 text-zinc-300 text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer max-w-[140px] truncate md:hidden"
                                             >
                                                 <option value="" disabled>Переместить в...</option>
                                                 {squad.id !== -1 && (

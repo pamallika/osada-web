@@ -168,7 +168,7 @@ export const SquadCardBase: FC<SquadCardBaseProps> = ({
                                         onMoveUser(p.user_id, targetSquadId);
                                         e.target.value = "";
                                     }}
-                                    className="bg-zinc-950/90 border border-zinc-700/60 hover:border-zinc-500 text-zinc-300 text-[10px] rounded-lg px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer max-w-[90px] truncate shrink-0"
+                                    className="bg-zinc-950/90 border border-zinc-700/60 hover:border-zinc-500 text-zinc-300 text-[10px] rounded-lg px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer max-w-[90px] truncate shrink-0 md:hidden"
                                 >
                                     <option value="" disabled>⇄ Отряд</option>
                                     {squad.id !== -1 && (
