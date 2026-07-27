@@ -4,6 +4,7 @@ import type { CreateEventRequest, Event } from '../api/events';
 import { useNavigate } from 'react-router-dom';
 import { useEvents } from '../hooks/useEvents';
 import { Modal } from './ui/Modal';
+import { Button } from './ui/Button';
 
 interface CreateEventModalProps {
     guildId: number;
@@ -160,29 +161,29 @@ export const CreateEventModal: FC<CreateEventModalProps> = ({ guildId, isOpen, o
                 </div>
 
                 <div className="flex gap-3 mt-8">
-                    <button
+                    <Button
                         type="button"
+                        variant="secondary"
                         onClick={onClose}
-                        className="flex-1 py-3 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 hover:text-white text-sm font-medium transition-all"
+                        className="flex-1"
                     >
                         Отмена
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="submit"
                         disabled={isLoading}
-                        className="flex-[1.5] flex items-center justify-center gap-2 py-3 rounded-xl bg-white text-zinc-900 hover:bg-zinc-100 text-sm font-semibold shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                        isLoading={isLoading}
+                        className="flex-[1.5]"
                     >
-                        {isLoading ? (
-                            <div className="w-4 h-4 border-2 border-zinc-900/30 border-t-zinc-900 rounded-full animate-spin" />
-                        ) : (
+                        {!isLoading && (
                             <>
                                 {event ? 'Обновить' : 'Создать событие'}
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                                 </svg>
                             </>
                         )}
-                    </button>
+                    </Button>
                 </div>
             </form>
         </Modal>

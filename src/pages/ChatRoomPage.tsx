@@ -9,7 +9,7 @@ import { getEcho } from '../api/echo';
 import { MessageBubble } from '../components/chat/MessageBubble';
 import { ChatInput } from '../components/chat/ChatInput';
 import { ChatInfoDrawer } from '../components/chat/ChatInfoDrawer';
-import { Skeleton } from '../components/Skeleton';
+import { Skeleton } from '../components/ui/Skeleton';
 import { toast } from '../components/Toaster';
 
 export const ChatRoomPage: FC = () => {

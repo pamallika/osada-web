@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { authApi } from '../api/auth';
+import { toast } from '../components/Toaster';
 
 export default function OnboardingPage() {
-    const { setUser } = useAuthStore();
+    const { setUser, logout } = useAuthStore();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -31,6 +32,12 @@ export default function OnboardingPage() {
             navigate('/dashboard');
         } catch (err: any) {
             console.error(err);
+            if (err.response?.status === 401) {
+                logout();
+                toast.error('Сессия истекла, пожалуйста войдите снова');
+                navigate('/login');
+                return;
+            }
             setError(err.response?.data?.message || 'Ошибка при обновлении профиля');
         } finally {
             setLoading(false);

@@ -6,7 +6,7 @@ import { chatApi } from '../api/chat';
 import type { Chat } from '../api/types';
 import { useAuthStore } from '../store/useAuthStore';
 import { CreateChatModal } from '../components/chat/CreateChatModal';
-import { Skeleton } from '../components/Skeleton';
+import { Skeleton } from '../components/ui/Skeleton';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 

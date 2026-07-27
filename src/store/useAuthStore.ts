@@ -1,45 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-interface Profile {
-    family_name: string | null;
-    global_name: string | null;
-    char_class: string | null;
-    attack: number | null;
-    awakening_attack: number | null;
-    defense: number | null;
-    gear_score: number | null;
-}
-
-interface LinkedAccount {
-    provider: string;
-    provider_id: string;
-    username: string;
-    display_name: string | null;
-    avatar: string | null; // Полный абсолютный URL
-}
-
-interface Guild {
-    id: number;
-    name: string;
-    logo_url: string | null;
-    invite_slug: string | null;
-}
-
-interface GuildMembership {
-    guild: Guild;
-    role: 'creator' | 'admin' | 'officer' | 'member' | 'pending';
-    status: 'active' | 'pending';
-}
-
-interface User {
-    id: number;
-    email: string;
-    avatar_url: string | null;
-    profile?: Profile;
-    linked_accounts?: LinkedAccount[];
-    guild_memberships?: GuildMembership[];
-}
+import type { User } from '../api/types';
+import { useWebSocketStore } from './useWebSocketStore';
 
 interface AuthState {
     token: string | null;
@@ -71,6 +33,7 @@ export const useAuthStore = create<AuthState>()(
             setPendingApplicationsCount: (pendingApplicationsCount) => set({ pendingApplicationsCount }),
             logout: () => {
                 localStorage.removeItem('siege-token');
+                useWebSocketStore.getState().disconnectWebSockets();
                 set({ token: null, user: null, isInitialLoading: false });
             },
         }),
