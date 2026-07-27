@@ -22,6 +22,9 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
 
     useUserWebSockets();
 
+    const activeMembership = user?.guild_memberships?.find(m => m.status === 'active');
+    const activeGuild = activeMembership?.guild;
+
     const { data: userChats } = useQuery({
         queryKey: ['chats'],
         queryFn: () => chatApi.getChats(),
