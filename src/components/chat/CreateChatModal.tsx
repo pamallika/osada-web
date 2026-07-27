@@ -51,7 +51,7 @@ export const CreateChatModal: FC<CreateChatModalProps> = ({ isOpen, onClose, onS
     }) || [];
 
     const toggleUser = (userId: number) => {
-        setSelectedUserIds(prev => 
+        setSelectedUserIds(prev =>
             prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
         );
     };
@@ -93,7 +93,6 @@ export const CreateChatModal: FC<CreateChatModalProps> = ({ isOpen, onClose, onS
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="например, Осадники или Стратегия"
                         className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-xl px-4 py-2.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
                     />
                 </div>
