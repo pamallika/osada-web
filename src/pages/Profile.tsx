@@ -9,12 +9,7 @@ import { toast } from '../components/Toaster';
 import { cn } from '../lib/utils';
 import { Skeleton } from '../components/Skeleton';
 
-const CLASSES = [
-    'Warrior', 'Ranger', 'Sorceress', 'Berserker', 'Tamer', 'Musa', 'Maehwa', 'Valkyrie',
-    'Kunoichi', 'Ninja', 'Wizard', 'Witch', 'Dark Knight', 'Striker', 'Mystic', 'Lahn',
-    'Archer', 'Shai', 'Guardian', 'Hashashin', 'Nova', 'Sage', 'Corsair', 'Drakania',
-    'Woosa', 'Maegu', 'Scholar', 'Dosa'
-];
+import { BDO_CLASSES } from '../constants/bdo';
 
 type Tab = 'settings' | 'gear';
 
@@ -311,7 +306,11 @@ export default function Profile() {
                                             <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600 ml-1">Класс</label>
                                             <select name="char_class" value={formData.char_class || ''} onChange={handleChange} className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all appearance-none cursor-pointer">
                                                 <option value="" className="bg-zinc-900">Выберите класс</option>
-                                                {CLASSES.map(c => <option key={c} value={c} className="bg-zinc-900">{c}</option>)}
+                                                {BDO_CLASSES.map(c => (
+                                                    <option key={c.id} value={c.id} className="bg-zinc-900">
+                                                        {c.nameRu} ({c.nameEn})
+                                                    </option>
+                                                ))}
                                             </select>
                                         </div>
                                         <div className="md:col-span-2 grid grid-cols-3 gap-4 pt-4 border-t border-white/[0.06]">

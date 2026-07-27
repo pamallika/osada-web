@@ -1,6 +1,7 @@
 import type { FC, ReactNode, DragEvent } from 'react';
 import Avatar from './Avatar';
 import { cn } from '../../lib/utils';
+import { getBdoClassName } from '../../constants/bdo';
 
 export interface UserLike {
     id?: number;
@@ -125,7 +126,7 @@ export const UserRow: FC<UserRowProps> = ({
 
                         {showClass && charClass && charClass !== 'Unknown' && (
                             <span className={cn("text-zinc-500 shrink-0 font-normal", sizeClasses.classTag)}>
-                                ({charClass})
+                                ({getBdoClassName(charClass)})
                             </span>
                         )}
 
