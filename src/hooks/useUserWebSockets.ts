@@ -56,9 +56,9 @@ export const useUserWebSockets = () => {
         }
 
         return () => {
-            echo.leave(`App.Models.User.${user.id}`);
+            echo.leaveChannel(`private-App.Models.User.${user.id}`);
             if (activeMembership) {
-                echo.leave(`guild.${activeMembership.guild.id}`);
+                echo.leaveChannel(`private-guild.${activeMembership.guild.id}`);
             }
         };
     }, [user, syncUser, navigate, addNotification, setPendingApplicationsCount]);

@@ -26,12 +26,22 @@ export const initEcho = (token: string | null) => {
 };
 
 let echoInstance: Echo | null = null;
+let currentToken: string | null = null;
 
 export const getEcho = () => {
-    if (!echoInstance) {
-        const token = localStorage.getItem('siege-token');
-        echoInstance = initEcho(token);
+    const token = localStorage.getItem('siege-token');
+    
+    // If token changed, destroy old instance
+    if (echoInstance && token !== currentToken) {
+        destroyEcho();
     }
+    
+    // Initialize new instance if needed
+    if (!echoInstance) {
+        echoInstance = initEcho(token);
+        currentToken = token;
+    }
+    
     return echoInstance;
 };
 
@@ -39,5 +49,6 @@ export const destroyEcho = () => {
     if (echoInstance) {
         echoInstance.disconnect();
         echoInstance = null;
+        currentToken = null;
     }
 };

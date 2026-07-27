@@ -45,19 +45,25 @@ export const usePresence = () => {
                 setOnlineUsers(users);
             })
             .joining((user: PresenceUser) => {
-                setOnlineUsers((prev) => [...prev.filter(u => u.id !== user.id), user]);
+                setOnlineUsers((prev) => {
+                    if (prev.find(u => u.id === user.id)) return prev;
+                    return [...prev, user];
+                });
             })
             .leaving((user: PresenceUser) => {
                 setOnlineUsers((prev) => prev.filter(u => u.id !== user.id));
+            })
+            .error((error: any) => {
+                console.error('Presence Channel Error:', error);
             })
             .listen('.GlobalNotification', (data: any) => {
                 handleNotification(data);
             });
 
         return () => {
-            echo.leave(channelName);
+            echo.leaveChannel(`presence-${channelName}`);
         };
-    }, [guildId, token, handleNotification]);
+    }, [guildId, token]); // Removed handleNotification to prevent reconnect loops
 
     return { 
         onlineCount: onlineUsers.length, 
