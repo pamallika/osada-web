@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { getMediaUrl } from '../lib/utils';
 import Avatar from './ui/Avatar';
+import { UserRow } from './ui/UserRow';
 
 export const GuildApplicationsList: React.FC = () => {
     const queryClient = useQueryClient();
@@ -65,22 +66,19 @@ export const GuildApplicationsList: React.FC = () => {
                     {applications.map((app) => (
                         <div key={app.id} className="bg-zinc-900/60 border border-white/[0.06] rounded-xl p-4 hover:border-white/10 transition-all duration-300 group shadow-lg ring-1 ring-white/[0.02]">
                             {/* Header */}
-                            <div className="flex items-center gap-3 mb-4">
-                                <Avatar 
-                                    user={{ 
-                                        avatar_url: app.user?.profile?.avatar_url, 
-                                        profile: app.user?.profile as any
-                                    }} 
+                            {app.user && (
+                                <UserRow
+                                    user={app.user}
                                     size="sm"
-                                    className="ring-1 ring-white/10"
+                                    showClass={false}
+                                    action={
+                                        <span className="text-[10px] text-zinc-500 font-medium tabular-nums">
+                                            {format(new Date(app.created_at || app.joined_at || ''), 'd MMM, HH:mm', { locale: ru })}
+                                        </span>
+                                    }
+                                    className="mb-4 p-0"
                                 />
-                                <div className="min-w-0">
-                                    <p className="text-sm font-semibold text-zinc-200 truncate">{app.user?.profile?.family_name || 'Неизвестный'}</p>
-                                    <p className="text-[10px] text-zinc-500 mt-0.5 font-medium tabular-nums">
-                                        {format(new Date(app.created_at || app.joined_at || ''), 'd MMM, HH:mm', { locale: ru })}
-                                    </p>
-                                </div>
-                            </div>
+                            )}
 
                             {/* Info */}
                             <div className="space-y-2 mb-4">

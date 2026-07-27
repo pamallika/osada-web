@@ -6,6 +6,7 @@ import { PlayerProfileModal } from './PlayerProfileModal';
 import { SquadParticipantsModal } from './SquadParticipantsModal';
 import { SquadFormModal } from './SquadFormModal';
 import Avatar from './ui/Avatar';
+import { UserRow } from './ui/UserRow';
 import { cn, getMediaUrl } from '../lib/utils';
 import {
     DndContext,
@@ -178,8 +179,10 @@ const SquadCardBase: FC<SquadCardBaseProps> = ({
 
             <div className="space-y-1 flex-1 mb-4">
                 {squad.participants?.map((p: Participant, idx: number) => (
-                    <div
+                    <UserRow
                         key={idx}
+                        user={p}
+                        size="xs"
                         draggable={canManageParticipants && !isOverlay}
                         onDragStart={(e) => {
                             if (!canManageParticipants || isOverlay) return;
@@ -187,36 +190,11 @@ const SquadCardBase: FC<SquadCardBaseProps> = ({
                             e.dataTransfer.effectAllowed = 'move';
                             e.stopPropagation();
                         }}
-                        onClick={(e) => { e.stopPropagation(); !isOverlay && setSelectedUserId(p.user_id); }}
+                        onClick={() => { if (!isOverlay) setSelectedUserId(p.user_id); }}
                         className={cn(
-                            "text-xs py-1 px-2 rounded-md transition-all flex items-center justify-between group/p",
-                            p.user_id === user?.id
-                                ? "text-violet-300 bg-violet-500/10 ring-1 ring-violet-500/20"
-                                : "text-zinc-400",
-                            !isOverlay && "hover:text-zinc-300 hover:bg-white/[0.03] cursor-pointer",
-                            canManageParticipants && !isOverlay && "cursor-grab active:cursor-grabbing"
+                            p.user_id === user?.id && "bg-violet-500/10 ring-1 ring-violet-500/20 text-violet-300"
                         )}
-                    >
-                         <div className="flex items-center gap-2 truncate">
-                            <Avatar 
-                                user={{ 
-                                    avatar_url: (p as any).avatar_url, 
-                                    profile: { family_name: p.family_name || '?', global_name: p.global_name, char_class: p.char_class } as any
-                                }} 
-                                size="xs"
-                                className="ring-1 ring-white/10"
-                            />
-                            <span className="truncate text-zinc-300 group-hover/p:text-white transition-colors">
-                                {p.family_name || p.global_name || 'Участник'}
-                                {p.char_class && <span className="text-zinc-500 text-[10px] ml-1">({p.char_class})</span>}
-                            </span>
-                            {p.verification_status === 'verified' && (
-                                <svg className="w-2.5 h-2.5 text-emerald-500/60" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                            )}
-                        </div>
-                    </div>
+                    />
                 ))}
                 {currentParticipants === 0 && (
                     <div className="text-[10px] text-center text-zinc-600 font-medium py-3 bg-zinc-950/20 rounded-xl border border-dashed border-white/[0.03]">

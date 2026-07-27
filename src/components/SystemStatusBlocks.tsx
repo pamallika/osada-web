@@ -4,6 +4,7 @@ import type { Event, EventUser, Participant, Squad } from '../api/events';
 import { useAuthStore } from '../store/useAuthStore';
 import { SquadParticipantsModal } from './SquadParticipantsModal';
 import { cn } from '../lib/utils';
+import { UserRow } from './ui/UserRow';
 
 interface SystemStatusBlocksProps {
     event: Event;
@@ -121,8 +122,11 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({
                     isPending && isPendingExpanded && "max-h-80 overflow-y-auto custom-scrollbar pr-1"
                 )}>
                     {displayedParticipants.map((p, idx) => (
-                        <div 
+                        <UserRow
                             key={idx}
+                            user={p}
+                            size="xs"
+                            isLineThrough={isDeclined}
                             draggable={isPending && canManage}
                             onDragStart={(e) => {
                                 if (!isPending || !canManage) return;
@@ -130,16 +134,8 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({
                                 e.dataTransfer.effectAllowed = 'move';
                                 e.stopPropagation();
                             }}
-                            className={cn(
-                                "text-xs py-1 px-2 rounded-md transition-all flex items-center justify-between text-zinc-400 bg-white/[0.02]",
-                                isPending && canManage && "cursor-grab active:cursor-grabbing hover:bg-white/[0.05] hover:text-zinc-200"
-                            )}
-                        >
-                            <span className="truncate">{p.family_name || p.global_name || 'Участник'}</span>
-                            {p.char_class && p.char_class !== 'Unknown' && (
-                                <span className="text-zinc-500 text-[10px] ml-1 shrink-0">({p.char_class})</span>
-                            )}
-                        </div>
+                            className="bg-white/[0.02]"
+                        />
                     ))}
                     
                     {isPending && count > 3 && (

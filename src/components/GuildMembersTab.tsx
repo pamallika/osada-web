@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { Skeleton } from './ui/Skeleton';
 import Avatar from './ui/Avatar';
+import { UserRow } from './ui/UserRow';
 
 interface GuildMembersTabProps {
     currentUserId: number;
@@ -114,18 +115,15 @@ export const GuildMembersTab: React.FC<GuildMembersTabProps> = ({ currentUserId,
                         <tbody className="divide-y divide-white/[0.04]">
                             {members?.map((member) => (
                                 <tr key={member.id} className="hover:bg-white/[0.025] transition-colors duration-150 group">
-                                    <td className="py-4 px-6" onClick={() => member.user?.id && setSelectedUserId(member.user.id)}>
-                                        <div className="flex items-center gap-3 cursor-pointer">
-                                            <Avatar 
-                                                user={member.user} 
-                                                size="md" 
-                                                className="ring-1 ring-white/10 group-hover:ring-violet-500/30 transition-colors" 
+                                    <td className="py-4 px-6">
+                                        {member.user && (
+                                            <UserRow
+                                                user={member.user}
+                                                size="sm"
+                                                showClass={false}
+                                                onClick={() => member.user?.id && setSelectedUserId(member.user.id)}
                                             />
-                                            <div>
-                                                <div className="text-zinc-200 font-medium">{member.user?.profile?.family_name || 'Участник'}</div>
-                                                <div className="text-xs text-zinc-600">@{member.user?.profile?.global_name || 'unknown'}</div>
-                                            </div>
-                                        </div>
+                                        )}
                                     </td>
                                     <td className="py-4 px-6 text-sm text-zinc-400 capitalize">
                                         {member.user?.profile?.char_class || '—'}
