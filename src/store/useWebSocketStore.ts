@@ -23,7 +23,7 @@ interface WebSocketStoreState {
 let currentGuildId: number | null = null;
 let currentUserId: number | null = null;
 
-export const useWebSocketStore = create<WebSocketStoreState>((set) => ({
+export const useWebSocketStore = create<WebSocketStoreState>((set, get) => ({
     onlineUsers: [],
     activeGuildId: null,
     activeUserId: null,

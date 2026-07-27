@@ -51,17 +51,34 @@ export const ProfileSettingsForm: FC<ProfileSettingsFormProps> = ({
                             ))}
                         </select>
                     </div>
-                    <div className="md:col-span-2 grid grid-cols-3 gap-4 pt-4 border-t border-white/[0.06]">
-                        {[
-                            { label: 'AP', name: 'attack' },
-                            { label: 'AAP', name: 'awakening_attack' },
-                            { label: 'DP', name: 'defense' }
-                        ].map(stat => (
-                            <div key={stat.name} className="space-y-1.5">
-                                <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600 ml-1 block text-center">{stat.label}</label>
-                                <input type="number" name={stat.name} value={(formData as any)[stat.name] || ''} onChange={handleChange} className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 text-center focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all" />
+                    <div className="md:col-span-2 space-y-2 pt-4 border-t border-white/[0.06]">
+                        {formData.gear_source === 'garmoth' && (
+                            <div className="bg-violet-500/10 border border-violet-500/20 text-violet-300 px-3 py-2 rounded-xl text-xs flex items-center gap-2 mb-2">
+                                <svg className="w-4 h-4 text-violet-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Статистика синхронизируется через Garmoth.com</span>
                             </div>
-                        ))}
+                        )}
+                        <div className="grid grid-cols-3 gap-4">
+                            {[
+                                { label: 'AP', name: 'attack' },
+                                { label: 'AAP', name: 'awakening_attack' },
+                                { label: 'DP', name: 'defense' }
+                            ].map(stat => (
+                                <div key={stat.name} className="space-y-1.5">
+                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600 ml-1 block text-center">{stat.label}</label>
+                                    <input
+                                        type="number"
+                                        name={stat.name}
+                                        value={(formData as any)[stat.name] || ''}
+                                        onChange={handleChange}
+                                        disabled={formData.gear_source === 'garmoth'}
+                                        className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 text-center focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     <div className="md:col-span-2 pt-4">
                         <button type="submit" disabled={isLoading} className="bg-white text-zinc-900 hover:bg-zinc-100 px-8 py-2.5 rounded-xl font-semibold text-sm shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all duration-200 active:scale-[0.98] disabled:opacity-50">

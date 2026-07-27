@@ -11,12 +11,14 @@ export interface UserLike {
     global_name?: string | null;
     char_class?: string | null;
     verification_status?: string | null;
+    gear_source?: 'manual' | 'garmoth' | null;
     profile?: {
         avatar_url?: string | null;
         family_name?: string | null;
         global_name?: string | null;
         char_class?: string | null;
         verification_status?: string | null;
+        gear_source?: 'manual' | 'garmoth' | null;
     } | null;
 }
 
@@ -52,6 +54,7 @@ export const UserRow: FC<UserRowProps> = ({
     const globalName = user.global_name || user.profile?.global_name;
     const charClass = user.char_class || user.profile?.char_class;
     const verificationStatus = user.verification_status || user.profile?.verification_status;
+    const gearSource = user.gear_source || user.profile?.gear_source;
 
     const displayName = familyName || globalName || 'Участник';
     const hasGlobalSubtitle = familyName && globalName && familyName !== globalName;
@@ -127,6 +130,12 @@ export const UserRow: FC<UserRowProps> = ({
                         {showClass && charClass && charClass !== 'Unknown' && (
                             <span className={cn("text-zinc-500 shrink-0 font-normal", sizeClasses.classTag)}>
                                 ({getBdoClassName(charClass)})
+                            </span>
+                        )}
+
+                        {gearSource === 'garmoth' && (
+                            <span className="px-1 py-0.2 rounded bg-violet-500/10 border border-violet-500/20 text-violet-300 text-[8px] font-bold uppercase tracking-wider shrink-0" title="Гир через Garmoth">
+                                Garmoth
                             </span>
                         )}
 

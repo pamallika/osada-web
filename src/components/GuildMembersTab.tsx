@@ -108,6 +108,7 @@ export const GuildMembersTab: React.FC<GuildMembersTabProps> = ({ currentUserId,
                             <tr className="border-b border-white/[0.04] bg-white/[0.02]">
                                 <th className="py-4 px-6 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Участник</th>
                                 <th className="py-4 px-6 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Класс</th>
+                                <th className="py-4 px-6 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider text-center">Гир</th>
                                 <th className="py-4 px-6 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Ранг</th>
                                 <th className="py-4 px-6 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider text-right">Действия</th>
                             </tr>
@@ -127,6 +128,22 @@ export const GuildMembersTab: React.FC<GuildMembersTabProps> = ({ currentUserId,
                                     </td>
                                     <td className="py-4 px-6 text-sm text-zinc-400 capitalize">
                                         {member.user?.profile?.char_class || '—'}
+                                    </td>
+                                    <td className="py-4 px-6 text-center">
+                                        <div className="flex items-center justify-center gap-1.5">
+                                            <span className="text-xs font-semibold text-violet-400 tabular-nums">
+                                                {member.user?.profile?.gear_score || 0}
+                                            </span>
+                                            {member.user?.profile?.gear_source === 'garmoth' ? (
+                                                <span className="px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20 text-violet-300 text-[9px] font-bold uppercase tracking-wider" title="Garmoth.com">
+                                                    ⚡ Garmoth
+                                                </span>
+                                            ) : (
+                                                <span className="px-1.5 py-0.5 rounded bg-zinc-800/60 border border-white/5 text-zinc-500 text-[9px] font-semibold uppercase tracking-wider" title="Ручная верификация">
+                                                    📸 Ручной
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="py-4 px-6">
                                         {canManage(member.role, member.user?.id || 0) ? (

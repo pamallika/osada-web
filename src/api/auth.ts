@@ -47,6 +47,11 @@ export const authApi = {
         return data.data;
     },
 
+    refreshGarmothGear: async () => {
+        const { data } = await apiClient.post<ApiResponse<UserProfile>>('auth/gear/refresh');
+        return data.data;
+    },
+
     getVerifications: async () => {
         const { data } = await apiClient.get<ApiResponse<GuildMembership[]>>('guilds/my/verifications');
         return data.data;

@@ -72,7 +72,14 @@ export const PlayerProfileModal: FC<PlayerProfileModalProps> = ({ userId, onClos
                         <div className="bg-zinc-950/60 border border-white/[0.06] rounded-xl p-4">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600 mb-1">Gear Score</p>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600">Gear Score</p>
+                                        {profile.profile?.gear_source === 'garmoth' && (
+                                            <span className="px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20 text-violet-300 text-[9px] font-bold uppercase tracking-wider">
+                                                Garmoth
+                                            </span>
+                                        )}
+                                    </div>
                                     <p className="text-3xl font-semibold tracking-tight text-violet-400 tabular-nums">{gearScore}</p>
                                 </div>
                                 <div className="text-right">
@@ -80,6 +87,23 @@ export const PlayerProfileModal: FC<PlayerProfileModalProps> = ({ userId, onClos
                                     <p className="text-sm font-bold text-zinc-200">{profile.profile?.char_class || 'Unknown'}</p>
                                 </div>
                             </div>
+
+                            {profile.profile?.gear_source === 'garmoth' && profile.profile?.garmoth_url && (
+                                <div className="mb-4">
+                                    <a
+                                        href={profile.profile.garmoth_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors font-medium underline underline-offset-4"
+                                    >
+                                        <span>Профиль Garmoth.com</span>
+                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-3 gap-2">
                                 {[
                                     { label: 'AP', val: profile.profile?.attack || 0 },

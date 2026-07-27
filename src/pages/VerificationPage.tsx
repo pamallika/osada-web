@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useVerifications } from '../hooks/useVerifications';
 import { GearComparison } from '../components/GearComparison';
 import Avatar from '../components/ui/Avatar';
@@ -14,7 +14,6 @@ export default function VerificationPage() {
         profile: UserProfile;
         media: UserGearMedia[];
     } | null>(null);
-    const [isDetailLoading, setIsDetailLoading] = useState(false);
 
     const filterLabels = { all: 'Все', pending: 'Ожидают', updated: 'Обновлены', verified: 'Одобрены' };
 
@@ -23,8 +22,7 @@ export default function VerificationPage() {
         return verifications.filter(v => v.verification_status === filter);
     }, [verifications, filter]);
 
-    const handleSelectUser = async (userId: number, membership: GuildMembership) => {
-        setIsDetailLoading(true);
+    const handleSelectUser = async (userId: number) => {
         const details = await getVerificationDetails(userId);
         if (details) {
             setSelectedUser({
@@ -34,7 +32,6 @@ export default function VerificationPage() {
                 media: details.media
             });
         }
-        setIsDetailLoading(false);
     };
 
     const handleApprove = async () => {
@@ -148,7 +145,11 @@ export default function VerificationPage() {
                                 </tr>
                             ) : (
                                 filteredVerifications.map(member => (
-                                    <tr key={member.user?.id || member.id} className="hover:bg-white/[0.02] transition-colors duration-150 group">
+                                    <tr 
+                                        key={member.user?.id || member.id} 
+                                        onClick={() => member.user?.id && handleSelectUser(member.user.id)}
+                                        className="hover:bg-white/[0.04] transition-colors duration-150 group cursor-pointer"
+                                    >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <Avatar user={member.user} size="md" className="ring-1 ring-white/5" />
@@ -159,9 +160,16 @@ export default function VerificationPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className="text-xs font-semibold text-violet-400 tabular-nums">
-                                                {member.user?.profile?.gear_score || 0}
-                                            </span>
+                                            <div className="flex items-center justify-center gap-1.5">
+                                                <span className="text-xs font-semibold text-violet-400 tabular-nums">
+                                                    {member.user?.profile?.gear_score || 0}
+                                                </span>
+                                                {member.user?.profile?.gear_source === 'garmoth' && (
+                                                    <span className="px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20 text-violet-300 text-[9px] font-bold uppercase tracking-wider">
+                                                        Garmoth
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             {getStatusBadge(member.verification_status)}
@@ -178,13 +186,24 @@ export default function VerificationPage() {
                                         <td className="px-6 py-4 text-right">
                                             {(member.verification_status === 'pending' || member.verification_status === 'updated') ? (
                                                 <button
-                                                    onClick={() => handleSelectUser(member.user?.id as number, member)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (member.user?.id) handleSelectUser(member.user.id);
+                                                    }}
                                                     className="px-4 py-2 bg-zinc-800/60 hover:bg-violet-600 text-zinc-300 hover:text-white rounded-lg text-xs font-medium transition-all duration-200 border border-white/5 hover:border-violet-500/50 shadow-md"
                                                 >
                                                     Проверить
                                                 </button>
                                             ) : (
-                                                <span className="text-zinc-700 text-xs pr-6">—</span>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (member.user?.id) handleSelectUser(member.user.id);
+                                                    }}
+                                                    className="px-4 py-2 bg-zinc-800/40 hover:bg-zinc-700/60 text-zinc-400 hover:text-zinc-200 rounded-lg text-xs font-medium transition-all duration-200 border border-white/5 shadow-sm"
+                                                >
+                                                    Просмотр
+                                                </button>
                                             )}
                                         </td>
                                     </tr>
@@ -204,7 +223,9 @@ export default function VerificationPage() {
                                 <h3 className="text-xl font-bold tracking-tight text-white font-inter">
                                     Верификация: {selectedUser.profile.family_name}
                                 </h3>
-                                <p className="text-sm text-zinc-500 mt-0.5 font-inter">Сравнение новых и текущих данных экипировки</p>
+                                <p className="text-sm text-zinc-500 mt-0.5 font-inter">
+                                    {selectedUser.profile.gear_source === 'garmoth' ? 'Верификация профиля через Garmoth.com' : 'Сравнение новых и текущих данных экипировки'}
+                                </p>
                             </div>
                             <button 
                                 onClick={() => setSelectedUser(null)}
@@ -217,27 +238,87 @@ export default function VerificationPage() {
                         </div>
 
                         <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-                            <GearComparison 
-                                currentMedia={selectedUser.media.filter(m => !m.is_draft)}
-                                draftMedia={selectedUser.media.filter(m => m.is_draft)}
-                            />
+                            {selectedUser.profile.gear_source === 'garmoth' ? (
+                                <div className="bg-zinc-950/60 border border-white/[0.06] rounded-2xl p-6 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Источник данных</span>
+                                        <span className="px-2.5 py-1 bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-bold rounded-lg uppercase">
+                                            Garmoth.com
+                                        </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Публичный профиль</p>
+                                        {selectedUser.profile.garmoth_url ? (
+                                            <a
+                                                href={selectedUser.profile.garmoth_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 p-3 bg-zinc-900 hover:bg-zinc-800/80 border border-white/10 rounded-xl text-violet-400 text-xs font-semibold transition-all w-full truncate"
+                                            >
+                                                <span className="truncate flex-1">{selectedUser.profile.garmoth_url}</span>
+                                                <svg className="w-4 h-4 shrink-0 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                            </a>
+                                        ) : (
+                                            <p className="text-xs text-zinc-500 italic">Ссылка не указана</p>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2 text-center pt-2">
+                                        <div className="p-2 bg-zinc-900 rounded-lg border border-white/[0.04]">
+                                            <span className="block text-[8px] text-zinc-500 uppercase font-semibold">GS</span>
+                                            <span className="text-xs font-bold text-white tabular-nums">{selectedUser.profile.gear_score || 0}</span>
+                                        </div>
+                                        <div className="p-2 bg-zinc-900 rounded-lg border border-white/[0.04]">
+                                            <span className="block text-[8px] text-zinc-500 uppercase font-semibold">AP</span>
+                                            <span className="text-xs font-bold text-zinc-300 tabular-nums">{selectedUser.profile.attack || 0}</span>
+                                        </div>
+                                        <div className="p-2 bg-zinc-900 rounded-lg border border-white/[0.04]">
+                                            <span className="block text-[8px] text-zinc-500 uppercase font-semibold">AAP</span>
+                                            <span className="text-xs font-bold text-zinc-300 tabular-nums">{selectedUser.profile.awakening_attack || 0}</span>
+                                        </div>
+                                        <div className="p-2 bg-zinc-900 rounded-lg border border-white/[0.04]">
+                                            <span className="block text-[8px] text-zinc-500 uppercase font-semibold">DP</span>
+                                            <span className="text-xs font-bold text-zinc-300 tabular-nums">{selectedUser.profile.defense || 0}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <GearComparison 
+                                    currentMedia={selectedUser.media.filter(m => !m.is_draft)}
+                                    draftMedia={selectedUser.media.filter(m => m.is_draft)}
+                                />
+                            )}
                         </div>
 
-                        <div className="p-6 border-t border-white/[0.06] bg-zinc-950/30 grid grid-cols-2 gap-4 shrink-0">
-                            <button
-                                onClick={handleReject}
-                                disabled={isLoading}
-                                className="flex-1 px-5 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 hover:text-rose-300 text-sm font-semibold transition-all"
-                            >
-                                Отклонить
-                            </button>
-                            <button
-                                onClick={handleApprove}
-                                disabled={isLoading}
-                                className="flex-1 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm shadow-lg shadow-emerald-900/30 transition-all active:scale-[0.98]"
-                            >
-                                Утвердить
-                            </button>
+                        <div className="p-6 border-t border-white/[0.06] bg-zinc-950/30 shrink-0">
+                            {(selectedUser.membership.verification_status === 'pending' || selectedUser.membership.verification_status === 'updated') ? (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={handleReject}
+                                        disabled={isLoading}
+                                        className="flex-1 px-5 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 hover:text-rose-300 text-sm font-semibold transition-all"
+                                    >
+                                        Отклонить
+                                    </button>
+                                    <button
+                                        onClick={handleApprove}
+                                        disabled={isLoading}
+                                        className="flex-1 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm shadow-lg shadow-emerald-900/30 transition-all active:scale-[0.98]"
+                                    >
+                                        Утвердить
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={() => setSelectedUser(null)}
+                                        className="px-6 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-semibold transition-all border border-white/5"
+                                    >
+                                        Закрыть
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

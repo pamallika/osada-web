@@ -23,6 +23,8 @@ export interface UserProfile {
     awakening_attack: number;
     defense: number;
     gear_score: number;
+    gear_source?: 'manual' | 'garmoth';
+    garmoth_url?: string | null;
 }
 
 export interface UserGearMedia {
