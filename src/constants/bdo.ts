@@ -36,6 +36,9 @@ export const BDO_CLASSES: BdoClass[] = [
     { id: 'Dosa', nameEn: 'Dosa', nameRu: 'Тоса', role: 'flank' },
     { id: 'Seraph', nameEn: 'Seraph', nameRu: 'Сераф', role: 'flank' },
     { id: 'Deadeye', nameEn: 'Deadeye', nameRu: 'Мёртвый глаз', role: 'ranged' },
+    { id: 'Necromant', nameEn: 'Nyashit', nameRu: 'Некромант', role: 'support' },
+    { id: 'Slut', nameEn: 'Slut', nameRu: 'Классовая шлюха', role: 'support' },
+
 ];
 
 export function getBdoClassName(classId: string | null | undefined, lang: 'ru' | 'en' = 'ru'): string {
