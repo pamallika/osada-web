@@ -42,6 +42,7 @@ export default function Profile() {
         attack: user?.profile?.attack || 0,
         awakening_attack: user?.profile?.awakening_attack || 0,
         defense: user?.profile?.defense || 0,
+        gear_source: user?.profile?.gear_source || 'manual',
     });
 
     useEffect(() => {
@@ -72,6 +73,7 @@ export default function Profile() {
                     attack: user.profile.attack ?? 0,
                     awakening_attack: user.profile.awakening_attack ?? 0,
                     defense: user.profile.defense ?? 0,
+                    gear_source: user.profile.gear_source || 'manual',
                 });
             }
         }
