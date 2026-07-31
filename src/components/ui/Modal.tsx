@@ -10,6 +10,7 @@ export interface ModalProps {
     badge?: ReactNode;
     maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl';
     layer?: 'primary' | 'secondary';
+    alignTop?: boolean;
     children: ReactNode;
     footer?: ReactNode;
     className?: string;
@@ -32,6 +33,7 @@ export const Modal: FC<ModalProps> = ({
     badge,
     maxWidth = 'lg',
     layer = 'primary',
+    alignTop = false,
     children,
     footer,
     className
@@ -57,7 +59,7 @@ export const Modal: FC<ModalProps> = ({
     const zIndexClass = layer === 'secondary' ? 'z-[120]' : 'z-[100]';
 
     return (
-        <div className={cn("fixed inset-0 flex items-center justify-center p-4 select-none", zIndexClass)}>
+        <div className={cn("fixed inset-0 flex justify-center p-4 select-none", alignTop ? "items-start pt-6 sm:pt-10 md:pt-14" : "items-center", zIndexClass)}>
             <div 
                 className="fixed inset-0 bg-zinc-950/80 backdrop-blur-md transition-opacity duration-200"
                 onClick={onClose}

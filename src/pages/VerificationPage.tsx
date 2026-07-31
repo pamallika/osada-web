@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useVerifications } from '../hooks/useVerifications';
 import { GearComparison } from '../components/GearComparison';
+import { GearHistoryView } from '../components/GearHistoryView';
 import Avatar from '../components/ui/Avatar';
 import { Skeleton } from '../components/ui/Skeleton';
 import type { UserProfile, UserGearMedia, GuildMembership } from '../api/types';
@@ -8,6 +9,7 @@ import type { UserProfile, UserGearMedia, GuildMembership } from '../api/types';
 export default function VerificationPage() {
     const { verifications, isLoading, error, getVerificationDetails, approve, reject } = useVerifications();
     const [filter, setFilter] = useState<'all' | 'pending' | 'updated' | 'verified'>('all');
+    const [modalTab, setModalTab] = useState<'verification' | 'history'>('verification');
     const [selectedUser, setSelectedUser] = useState<{
         userId: number;
         membership: GuildMembership;
@@ -237,8 +239,33 @@ export default function VerificationPage() {
                             </button>
                         </div>
 
+                        <div className="px-6 pt-4 pb-0 flex items-center gap-2 border-b border-white/[0.06] bg-zinc-950/20">
+                            <button
+                                onClick={() => setModalTab('verification')}
+                                className={`px-4 py-2 text-xs font-semibold rounded-t-xl transition-all border-b-2 ${
+                                    modalTab === 'verification'
+                                        ? 'text-violet-400 border-violet-500 bg-white/[0.03]'
+                                        : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                                }`}
+                            >
+                                Данные верификации
+                            </button>
+                            <button
+                                onClick={() => setModalTab('history')}
+                                className={`px-4 py-2 text-xs font-semibold rounded-t-xl transition-all border-b-2 ${
+                                    modalTab === 'history'
+                                        ? 'text-violet-400 border-violet-500 bg-white/[0.03]'
+                                        : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                                }`}
+                            >
+                                История гира
+                            </button>
+                        </div>
+
                         <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-                            {selectedUser.profile.gear_source === 'garmoth' ? (
+                            {modalTab === 'history' ? (
+                                <GearHistoryView userId={selectedUser.userId} isOwner={false} compact={true} />
+                            ) : selectedUser.profile.gear_source === 'garmoth' ? (
                                 <div className="bg-zinc-950/60 border border-white/[0.06] rounded-2xl p-6 space-y-4">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Источник данных</span>

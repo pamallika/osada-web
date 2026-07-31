@@ -37,6 +37,17 @@ export interface UserGearMedia {
     created_at: string;
 }
 
+export interface UserGearHistory {
+    id: number;
+    user_id: number;
+    gear_score: number;
+    attack: number;
+    awakening_attack: number;
+    defense: number;
+    source: 'manual' | 'garmoth';
+    created_at: string;
+}
+
 export interface LinkedAccount {
     id: number;
     provider: 'discord' | 'telegram';

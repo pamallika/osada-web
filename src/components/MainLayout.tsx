@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { chatApi } from '../api/chat';
 import Avatar from './ui/Avatar';
 import { Toaster } from './Toaster';
+import { ChangelogModal } from './ChangelogModal';
 
 interface MainLayoutProps {
     children: ReactNode;
@@ -226,6 +227,7 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
                 </div>
             </nav>
 
+            <ChangelogModal />
             <Toaster />
         </div>
     );

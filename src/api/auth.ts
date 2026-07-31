@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { ApiResponse, User, UserGearMedia, GuildMembership, UserProfile } from './types';
+import type { ApiResponse, User, UserGearMedia, GuildMembership, UserProfile, UserGearHistory } from './types';
 
 export type ProfileData = Partial<UserProfile>;
 
@@ -154,6 +154,23 @@ export const authApi = {
         const { data } = await apiClient.post<ApiResponse<User>>('auth/avatar', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
+        return data.data;
+    },
+
+    getGearHistory: async () => {
+        const { data } = await apiClient.get<ApiResponse<UserGearHistory[]>>('auth/gear/history');
+        return data.data;
+    },
+
+    deleteGearHistoryItem: async (id: number) => {
+        const { data } = await apiClient.post<ApiResponse<null>>(`auth/gear/history/${id}`, {
+            _method: 'DELETE'
+        });
+        return data.data;
+    },
+
+    getMemberGearHistory: async (userId: number) => {
+        const { data } = await apiClient.get<ApiResponse<UserGearHistory[]>>(`guilds/my/members/${userId}/gear-history`);
         return data.data;
     }
 };
