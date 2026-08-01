@@ -19,6 +19,7 @@ interface GearHistoryViewProps {
     userId?: number | null;
     isOwner?: boolean;
     compact?: boolean;
+    refreshKey?: number;
 }
 
 type AnalyticsTab = 'general' | 'chart' | 'history';
@@ -27,10 +28,11 @@ type MetricMode = 'gs' | 'ap' | 'dp';
 export const GearHistoryView: FC<GearHistoryViewProps> = ({
     userId,
     isOwner = !userId,
-    compact = false
+    compact = false,
+    refreshKey
 }) => {
     const { user } = useAuthStore();
-    const { history, isLoading, error, deleteSnapshot } = useGearHistory(userId);
+    const { history, isLoading, error, deleteSnapshot } = useGearHistory(userId, refreshKey);
     const [analyticsTab, setAnalyticsTab] = useState<AnalyticsTab>('general');
     const [metricMode, setMetricMode] = useState<MetricMode>('gs');
     const [deletingId, setDeletingId] = useState<number | null>(null);

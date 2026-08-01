@@ -3,7 +3,7 @@ import axios from 'axios';
 import { authApi } from '../api/auth';
 import type { UserGearHistory } from '../api/types';
 
-export const useGearHistory = (userId?: number | null) => {
+export const useGearHistory = (userId?: number | null, refreshKey?: number) => {
     const [history, setHistory] = useState<UserGearHistory[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export const useGearHistory = (userId?: number | null) => {
 
     useEffect(() => {
         fetchHistory();
-    }, [fetchHistory]);
+    }, [fetchHistory, refreshKey]);
 
     const deleteSnapshot = async (id: number): Promise<boolean> => {
         setError(null);

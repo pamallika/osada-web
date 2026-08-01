@@ -47,6 +47,7 @@ export const GearSection = () => {
     const [urlError, setUrlError] = useState<string | null>(null);
     const [isSavingGarmoth, setIsSavingGarmoth] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
     const [showWarningModal, setShowWarningModal] = useState(false);
     const [lightbox, setLightbox] = useState<string | null>(null);
@@ -130,6 +131,7 @@ export const GearSection = () => {
                 char_class: charClass
             });
             setUser(updatedUser);
+            setHistoryRefreshTrigger(prev => prev + 1);
             toast.success('Данные экипировки успешно сохранены!');
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Ошибка при сохранении профиля');
@@ -167,6 +169,8 @@ export const GearSection = () => {
                 });
             } catch {
                 // Refresh error ignored
+            } finally {
+                setHistoryRefreshTrigger(prev => prev + 1);
             }
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Ошибка при сохранении ссылки Garmoth');
@@ -185,6 +189,7 @@ export const GearSection = () => {
                     profile: updatedProfile
                 });
             }
+            setHistoryRefreshTrigger(prev => prev + 1);
             toast.success('Данные гира обновлены с Garmoth!');
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Ошибка при обновлении гира с Garmoth');
@@ -498,7 +503,7 @@ export const GearSection = () => {
 
             {/* НИЖНИЙ БЛОК: Аналитика (Общее / График / История) */}
             <div className="pt-6 border-t border-white/[0.06]">
-                <GearHistoryView isOwner={true} />
+                <GearHistoryView isOwner={true} refreshKey={historyRefreshTrigger} />
             </div>
 
             {/* Warning Modal when switching to Manual */}

@@ -20,6 +20,18 @@ export interface DashboardAnalyticsData {
     meta: {
         class_distribution: { class: string; count: number }[];
     };
+    gear?: {
+        averages: {
+            avg_gs: number;
+            avg_attack: number;
+            avg_awakening_attack: number;
+            avg_defense: number;
+        };
+        gs_distribution: { range: string; count: number }[]; // '< 750', '750-800', '800-840', '840+'
+        class_gear: { class_name: string; avg_gs: number; count: number }[];
+        growth_trend: { dates: string[]; avg_gs: number[] };
+        top_growth: { user_id: number; family_name: string; current_gs: number; gs_delta: number; avatar: string | null }[];
+    };
     hr?: { // Only for Admin+
         dynamics: {
             dates: string[];

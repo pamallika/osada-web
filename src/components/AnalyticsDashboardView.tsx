@@ -1,14 +1,19 @@
 import { FC, useState } from 'react';
 import { useAnalyticsDashboard } from '../hooks/useDashboard';
-import { 
-    PieChart, Pie, Cell, 
+import {
+    PieChart, Pie, Cell,
     AreaChart, Area,
-    XAxis, YAxis, CartesianGrid, Tooltip, 
-    ResponsiveContainer 
+    XAxis, YAxis, CartesianGrid, Tooltip,
+    ResponsiveContainer
 } from 'recharts';
 import { Skeleton } from './ui/Skeleton';
 import Avatar from './ui/Avatar';
 import { ActivityLeadersModal } from './ActivityLeadersModal';
+import { GuildGearOverviewCards } from './GuildGearOverviewCards';
+import { GuildGearDistributionChart } from './GuildGearDistributionChart';
+import { GuildGearGrowthChart } from './GuildGearGrowthChart';
+import { GuildGearTopGrowth } from './GuildGearTopGrowth';
+import { GuildGearClassChart } from './GuildGearClassChart';
 
 const PERIODS = [7, 14, 30, 0];
 
@@ -50,14 +55,14 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
 
     if (error || !data) {
         return (
-             <div className="p-16 text-center bg-zinc-900/40 rounded-3xl border border-white/5 my-10 backdrop-blur-xl">
+            <div className="p-16 text-center bg-zinc-900/40 rounded-3xl border border-white/5 my-10 backdrop-blur-xl">
                 <h3 className="text-zinc-100 font-semibold text-xl">
                     Аналитика временно недоступна
                 </h3>
                 <p className="text-zinc-500 text-sm mt-2 max-w-[250px] mx-auto leading-relaxed">
                     {(error as Error)?.message || 'За этот период недостаточно данных для визуализации'}
                 </p>
-                <button 
+                <button
                     onClick={() => setPeriod(7)}
                     className="mt-8 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-6 py-2 rounded-xl text-xs font-medium transition-all"
                 >
@@ -88,9 +93,8 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                         <button
                             key={p}
                             onClick={() => setPeriod(p)}
-                            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                                period === p ? 'text-white bg-white/10 ring-1 ring-white/10 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
-                            }`}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${period === p ? 'text-white bg-white/10 ring-1 ring-white/10 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'
+                                }`}
                         >
                             {p === 0 ? 'Все время' : `${p} дней`}
                         </button>
@@ -112,7 +116,7 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                             </span>
                             <span className="text-sm text-zinc-500 ml-1">Активность</span>
                         </div>
-                        
+
                         <div className="mt-8">
                             <div className="h-2 bg-zinc-800/80 rounded-full overflow-hidden">
                                 <div
@@ -130,7 +134,7 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
 
                 {/* Activity Leaders */}
                 <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-8">
-                    <div 
+                    <div
                         className="flex items-center justify-between mb-6 cursor-pointer group/title select-none"
                         onClick={() => setShowLeadersModal(true)}
                     >
@@ -148,11 +152,11 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                         {activity.top_players.slice(0, 10).map((player, idx) => (
                             <div key={player.id} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/[0.03] transition-colors group">
                                 <span className="w-5 text-right text-[11px] text-zinc-700 font-mono tabular-nums flex-shrink-0">{idx + 1}.</span>
-                                <Avatar 
-                                    user={{ 
-                                        avatar_url: player.avatar, 
+                                <Avatar
+                                    user={{
+                                        avatar_url: player.avatar,
                                         profile: { family_name: player.name } as any
-                                    }} 
+                                    }}
                                     size="sm" // roughly 28px/w-7
                                     className="w-7 h-7 ring-1 ring-white/10"
                                 />
@@ -167,7 +171,7 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
 
                     {/* View All Button Action */}
                     <div className="mt-6 pt-4 border-t border-white/[0.04]">
-                        <button 
+                        <button
                             onClick={() => setShowLeadersModal(true)}
                             className="w-full py-3 rounded-xl bg-zinc-800/40 hover:bg-zinc-800/80 border border-white/5 text-zinc-400 hover:text-white text-[10px] font-black uppercase tracking-[0.2em] italic flex items-center justify-center gap-3 transition-all group/btn"
                         >
@@ -179,6 +183,27 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                     </div>
                 </div>
             </div>
+
+            {/* Блок аналитики экипировки гильдии (Guild Gear Analytics) */}
+            {data.gear && (
+                <div className="space-y-6 pt-4 border-t border-white/[0.06]">
+                    <div>
+                        <h2 className="text-xl font-bold tracking-tight text-white">Gear Score гильдии</h2>
+                    </div>
+
+                    <GuildGearOverviewCards averages={data.gear.averages} />
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <GuildGearDistributionChart gsDistribution={data.gear.gs_distribution} />
+                        <GuildGearGrowthChart growthTrend={data.gear.growth_trend} />
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <GuildGearTopGrowth topGrowth={data.gear.top_growth} />
+                        <GuildGearClassChart classGear={data.gear.class_gear} />
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Classes (Pie) */}
@@ -198,17 +223,17 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                                     nameKey="class"
                                 >
                                     {meta.class_distribution.map((_, index) => (
-                                        <Cell 
-                                            key={`cell-${index}`} 
-                                            fill={COLORS[index % COLORS.length]} 
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={COLORS[index % COLORS.length]}
                                             stroke="transparent"
                                         />
                                     ))}
                                 </Pie>
-                                <Tooltip 
-                                    contentStyle={{ 
-                                        backgroundColor: 'rgba(9,9,11,0.95)', 
-                                        border: '1px solid rgba(255,255,255,0.08)', 
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: 'rgba(9,9,11,0.95)',
+                                        border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '12px',
                                         fontSize: '12px',
                                         padding: '8px 12px'
@@ -224,7 +249,7 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                             <div key={c.class} className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                                 <span className="text-[11px] text-zinc-400 truncate">{c.class}</span>
-                                <span className="text-[11px] text-zinc-600 tabular-nums ml-auto">{Math.round((c.count / meta.class_distribution.reduce((a,b) => a+b.count, 0)) * 100)}%</span>
+                                <span className="text-[11px] text-zinc-600 tabular-nums ml-auto">{Math.round((c.count / meta.class_distribution.reduce((a, b) => a + b.count, 0)) * 100)}%</span>
                             </div>
                         ))}
                     </div>
@@ -248,35 +273,35 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                                        <XAxis 
-                                            dataKey="date" 
+                                        <XAxis
+                                            dataKey="date"
                                             tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
                                             axisLine={false}
                                             tickLine={false}
                                             tickFormatter={(val) => val.split('-').slice(1).reverse().join('.')}
                                             dy={10}
                                         />
-                                        <YAxis 
+                                        <YAxis
                                             tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
                                             axisLine={false}
                                             tickLine={false}
                                         />
-                                        <Tooltip 
-                                            contentStyle={{ 
-                                                backgroundColor: 'rgba(9,9,11,0.95)', 
-                                                border: '1px solid rgba(255,255,255,0.08)', 
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: 'rgba(9,9,11,0.95)',
+                                                border: '1px solid rgba(255,255,255,0.08)',
                                                 borderRadius: '12px',
                                                 fontSize: '12px'
                                             }}
                                             cursor={{ stroke: 'rgba(255,255,255,0.08)' }}
                                         />
-                                        <Area 
-                                            type="monotone" 
-                                            dataKey="joined" 
-                                            stroke="#10b981" 
-                                            fillOpacity={1} 
-                                            fill="url(#colorJoined)" 
-                                            name="Вступило" 
+                                        <Area
+                                            type="monotone"
+                                            dataKey="joined"
+                                            stroke="#10b981"
+                                            fillOpacity={1}
+                                            fill="url(#colorJoined)"
+                                            name="Вступило"
                                             strokeWidth={2}
                                             animationDuration={1500}
                                         />
@@ -284,7 +309,7 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center text-center opacity-40 gap-3">
-                                     <span className="text-xs text-zinc-500">Недостаточно данных для графика</span>
+                                    <span className="text-xs text-zinc-500">Недостаточно данных для графика</span>
                                 </div>
                             )}
                         </div>
@@ -293,9 +318,9 @@ export const AnalyticsDashboardView: FC<AnalyticsDashboardViewProps> = ({ isAdmi
             </div>
 
             {showLeadersModal && (
-                <ActivityLeadersModal 
-                    data={activity.top_players} 
-                    onClose={() => setShowLeadersModal(false)} 
+                <ActivityLeadersModal
+                    data={activity.top_players}
+                    onClose={() => setShowLeadersModal(false)}
                 />
             )}
         </div>
