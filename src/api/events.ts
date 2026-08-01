@@ -48,6 +48,23 @@ export interface Event {
     declined_users?: EventUser[];
 }
 
+export interface PaginationMeta {
+    current_page: number;
+    last_page: number;
+    total: number;
+    per_page: number;
+}
+
+export interface PaginatedEventsResponse {
+    data: Event[];
+    meta: PaginationMeta;
+}
+
+export interface GetEventsResult {
+    events: Event[];
+    meta?: PaginationMeta;
+}
+
 export interface CreateEventRequest {
     guild_id: number;
     name: string;
@@ -57,11 +74,29 @@ export interface CreateEventRequest {
 }
 
 export const eventsApi = {
-    getEvents: async (guildId: number) => {
-        const response = await apiClient.get<ApiResponse<Event[]>>(`events`, {
-            params: { guild_id: guildId }
+    getEvents: async (
+        guildId: number,
+        status?: 'active' | 'draft' | 'archived',
+        page?: number
+    ): Promise<GetEventsResult> => {
+        const response = await apiClient.get<ApiResponse<Event[] | PaginatedEventsResponse>>(`events`, {
+            params: {
+                guild_id: guildId,
+                status,
+                page,
+            }
         });
-        return response.data.data;
+        const resData = response.data.data;
+        if (resData && typeof resData === 'object' && !Array.isArray(resData) && 'data' in resData) {
+            return {
+                events: resData.data,
+                meta: resData.meta,
+            };
+        }
+        return {
+            events: (resData as Event[]) || [],
+            meta: undefined,
+        };
     },
 
     createEvent: async (data: CreateEventRequest) => {

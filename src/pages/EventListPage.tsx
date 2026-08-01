@@ -14,6 +14,7 @@ const EventListPage: FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [filter, setFilter] = useState<'active' | 'drafts' | 'archive'>('active');
+    const [page, setPage] = useState<number>(1);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     useEffect(() => {
@@ -28,18 +29,22 @@ const EventListPage: FC = () => {
     
     const canCreateEvent = ['creator', 'admin', 'officer'].includes(userRole || '');
 
-    const { data: events = [], isLoading, refetch } = useQuery({
-        queryKey: ['events', activeGuildId],
-        queryFn: () => eventsApi.getEvents(activeGuildId!),
+    const handleFilterChange = (newFilter: 'active' | 'drafts' | 'archive') => {
+        setFilter(newFilter);
+        setPage(1);
+    };
+
+    const apiStatus: 'active' | 'draft' | 'archived' =
+        filter === 'drafts' ? 'draft' : filter === 'archive' ? 'archived' : 'active';
+
+    const { data, isLoading, refetch } = useQuery({
+        queryKey: ['events', activeGuildId, filter, page],
+        queryFn: () => eventsApi.getEvents(activeGuildId!, apiStatus, page),
         enabled: !!activeGuildId,
     });
 
-    const filteredEvents = events.filter((event: Event) => {
-        if (filter === 'active') return ['published', 'completed'].includes(event.status);
-        if (filter === 'drafts') return event.status === 'draft';
-        if (filter === 'archive') return event.status === 'archived';
-        return true;
-    });
+    const events = data?.events || [];
+    const meta = data?.meta;
 
     const handleEventClick = (event: Event) => {
         navigate(`/events/${event.id}`);
@@ -91,7 +96,7 @@ const EventListPage: FC = () => {
                 {/* Filters / Tabs */}
                 <div className="inline-flex p-1 bg-zinc-900/40 backdrop-blur-md rounded-xl border border-white/[0.06] gap-1 mb-10 overflow-x-auto no-scrollbar shadow-inner">
                     <button
-                        onClick={() => setFilter('active')}
+                        onClick={() => handleFilterChange('active')}
                         className={`px-6 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                             filter === 'active' ? 'text-white bg-white/10 ring-1 ring-white/10' : 'text-zinc-500 hover:text-zinc-300'
                         }`}
@@ -100,7 +105,7 @@ const EventListPage: FC = () => {
                     </button>
                     {canCreateEvent && (
                         <button
-                            onClick={() => setFilter('drafts')}
+                            onClick={() => handleFilterChange('drafts')}
                             className={`px-6 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                                 filter === 'drafts' ? 'text-white bg-white/10 ring-1 ring-white/10' : 'text-zinc-500 hover:text-zinc-300'
                             }`}
@@ -109,7 +114,7 @@ const EventListPage: FC = () => {
                         </button>
                     )}
                     <button
-                        onClick={() => setFilter('archive')}
+                        onClick={() => handleFilterChange('archive')}
                         className={`px-6 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                             filter === 'archive' ? 'text-white bg-white/10 ring-1 ring-white/10' : 'text-zinc-500 hover:text-zinc-300'
                         }`}
@@ -122,16 +127,51 @@ const EventListPage: FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                         {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
                     </div>
-                ) : filteredEvents.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                        {filteredEvents.map((event: Event) => (
-                            <EventCard 
-                                key={event.id} 
-                                event={event} 
-                                onClick={handleEventClick}
-                            />
-                        ))}
-                    </div>
+                ) : events.length > 0 ? (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                            {events.map((event: Event) => (
+                                <EventCard 
+                                    key={event.id} 
+                                    event={event} 
+                                    onClick={handleEventClick}
+                                />
+                            ))}
+                        </div>
+                        {filter === 'archive' && meta && meta.last_page > 1 && (
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/[0.06]">
+                                <div className="text-xs text-zinc-500 font-medium select-none">
+                                    Страница <span className="text-zinc-300 font-semibold">{meta.current_page}</span> из{' '}
+                                    <span className="text-zinc-300 font-semibold">{meta.last_page}</span> ({meta.total} событий)
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                        disabled={meta.current_page <= 1 || isLoading}
+                                        className="min-h-[44px] px-4 py-2 rounded-xl text-xs font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all select-none flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                        Назад
+                                    </button>
+                                    <span className="px-3 py-2 text-xs font-bold text-zinc-400 select-none">
+                                        {meta.current_page} / {meta.last_page}
+                                    </span>
+                                    <button
+                                        onClick={() => setPage((p) => Math.min(meta.last_page, p + 1))}
+                                        disabled={meta.current_page >= meta.last_page || isLoading}
+                                        className="min-h-[44px] px-4 py-2 rounded-xl text-xs font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all select-none flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                                    >
+                                        Вперёд
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-32 gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-zinc-800/50 border border-white/[0.06] flex items-center justify-center">
@@ -158,3 +198,5 @@ const EventListPage: FC = () => {
 };
 
 export default EventListPage;
+
+
