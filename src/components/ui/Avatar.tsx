@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { User } from '../../api/types';
 import { getMediaUrl } from '../../lib/utils';
 
@@ -9,6 +9,8 @@ interface AvatarProps {
 }
 
 const Avatar: React.FC<AvatarProps> = ({ user, size = 'md', className = '' }) => {
+    const [imageError, setImageError] = useState(false);
+
     const sizeClasses = {
         xs: 'w-6 h-6 text-[8px]',
         sm: 'w-8 h-8 text-[10px]',
@@ -40,19 +42,14 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 'md', className = '' }) =>
 
     const fallbackColors = getFallbackStyle(displayName);
 
-    if (avatarUrl) {
+    if (avatarUrl && !imageError) {
         return (
             <div className={`${sizeClasses[size]} rounded-2xl overflow-hidden border border-zinc-800/50 flex-shrink-0 bg-zinc-950 shadow-inner group-hover/avatar:border-violet-500/30 transition-colors ${className}`}>
                 <img 
                     src={avatarUrl} 
                     alt={displayName} 
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                        // If image fails to load, hide it to show fallback (if we had a state)
-                        // For now we just let it be, but ideally we'd handle 404s
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).parentElement!.classList.add('bg-zinc-900');
-                    }}
+                    onError={() => setImageError(true)}
                 />
             </div>
         );

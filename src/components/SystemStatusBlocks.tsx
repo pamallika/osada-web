@@ -32,6 +32,7 @@ export const SystemStatusBlocks: FC<SystemStatusBlocksProps> = ({
         family_name: user.profile?.family_name || user.profile?.global_name || 'Участник',
         global_name: user.profile?.global_name || null,
         char_class: (user.profile as any)?.char_class || 'Unknown',
+        avatar_url: user.avatar_url,
         status: status,
     });
 
