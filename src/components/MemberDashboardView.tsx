@@ -241,31 +241,7 @@ export const MemberDashboardView: FC = () => {
                     </div>
                 </div>
 
-                {/* Privacy Setting Card (Only for Creators) */}
-                {user?.guild_memberships?.find(m => m.guild.id === guild?.id)?.role === 'creator' && (
-                    <div className="col-span-1 sm:col-span-2 bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 ring-1 ring-white/[0.04] flex items-center justify-between">
-                        <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600">Настройки приватности</p>
-                            <h3 className="text-lg font-bold tracking-tight text-white mt-1">Публичный</h3>
-                            <p className="text-xs text-zinc-500 mt-1">Отображать гильдию в глобальном списке</p>
-                        </div>
-                        <button
-                            onClick={async () => {
-                                try {
-                                    await guildApi.updatePrivacy(!guild?.is_public);
-                                    queryClient.invalidateQueries({ queryKey: ['memberDashboard'] });
-                                    addNotification('Настройки приватности обновлены', 'success');
-                                } catch (e) {
-                                    console.error(e);
-                                    addNotification('Ошибка обновления', 'error');
-                                }
-                            }}
-                            className={`w-12 h-6 rounded-full p-1 transition-colors relative ${guild?.is_public ? 'bg-violet-600' : 'bg-zinc-700'}`}
-                        >
-                            <div className={`w-4 h-4 rounded-full bg-white transition-transform ${guild?.is_public ? 'translate-x-6' : 'translate-x-0'}`} />
-                        </button>
-                    </div>
-                )}
+
             </div>
 
             {/* Recuitment Section */}
