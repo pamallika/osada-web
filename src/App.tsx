@@ -11,8 +11,6 @@ import EventDetailsPage from './pages/EventDetailsPage';
 import AuthCallback from './pages/AuthCallback';
 import { Integrations } from './pages/Integrations';
 import VerificationPage from './pages/VerificationPage';
-import PublicGuildsPage from './pages/PublicGuildsPage';
-import PublicGuildProfilePage from './pages/PublicGuildProfilePage';
 import { ChatListPage } from './pages/ChatListPage';
 import { ChatRoomPage } from './pages/ChatRoomPage';
 import { useAuthStore } from './store/useAuthStore';
@@ -139,16 +137,7 @@ function App() {
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/invite/:slug" element={<InviteHandler />} />
 
-                    <Route path="/guilds" element={
-                        <MainLayout>
-                            <PublicGuildsPage />
-                        </MainLayout>
-                    } />
-                    <Route path="/guilds/:slug" element={
-                        <MainLayout>
-                            <PublicGuildProfilePage />
-                        </MainLayout>
-                    } />
+                    <Route path="/guilds" element={<Navigate to="/dashboard" replace />} />
 
                     {/* Protected Routes WITH Global Navigation */}
                     <Route element={
