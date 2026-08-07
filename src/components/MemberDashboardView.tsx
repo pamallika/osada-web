@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useNotificationStore } from '../store/useNotificationStore';
 import { guildApi } from '../api/guilds';
 import { EventCard } from './EventCard';
+import { GuildInviteBar } from './GuildInviteBar';
 import { Skeleton } from './ui/Skeleton';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -19,22 +20,6 @@ export const MemberDashboardView: FC = () => {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-    const [copySuccess, setCopySuccess] = useState(false);
-    const [isEditingInvite, setIsEditingInvite] = useState(false);
-    const [editInviteSlug, setEditInviteSlug] = useState('');
-    const [isSavingInvite, setIsSavingInvite] = useState(false);
-
-    const handleCopyInvite = (slug: string) => {
-        const fullUrl = `${window.location.origin}/invite/${slug}`;
-        navigator.clipboard.writeText(fullUrl);
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-    };
-
-    const handleEditInvite = () => {
-        setEditInviteSlug(dashboard?.guild?.invite_slug || '');
-        setIsEditingInvite(true);
-    };
 
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -71,14 +56,9 @@ export const MemberDashboardView: FC = () => {
         }
     };
 
-    const handleSaveInvite = async () => {
-        if (!editInviteSlug || editInviteSlug.length < 3 || editInviteSlug.length > 32) {
-            addNotification({ title: 'Ошибка', message: 'Ссылка должна быть от 3 до 32 символов', type: 'error' });
-            return;
-        }
-        setIsSavingInvite(true);
+    const handleUpdateInviteSlug = async (newSlug: string) => {
         try {
-            const updatedGuild = await guildApi.updateInviteSlug(editInviteSlug.toLowerCase());
+            const updatedGuild = await guildApi.updateInviteSlug(newSlug.toLowerCase());
             queryClient.invalidateQueries({ queryKey: ['dashboard', 'member'] });
             if (user && user.guild_memberships) {
                 const updatedMemberships = user.guild_memberships.map(m => {
@@ -90,11 +70,9 @@ export const MemberDashboardView: FC = () => {
                 setUser({ ...user, guild_memberships: updatedMemberships });
             }
             addNotification({ title: 'Успешно', message: 'Инвайт-ссылка обновлена', type: 'success' });
-            setIsEditingInvite(false);
         } catch (err: any) {
             addNotification({ title: 'Ошибка', message: 'Не удалось обновить ссылку', type: 'error' });
-        } finally {
-            setIsSavingInvite(false);
+            throw err;
         }
     };
 
@@ -134,44 +112,53 @@ export const MemberDashboardView: FC = () => {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 select-none">
-            {/* Guild Header */}
-            <div className="flex items-center gap-4 mb-8">
-                <div
-                    className={`relative group ${canManageGuild ? 'cursor-pointer' : ''}`}
-                    onClick={() => canManageGuild && fileInputRef.current?.click()}
-                >
-                    <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-500 font-bold text-xl overflow-hidden relative ring-1 ring-white/10">
-                        {guild?.logo_url ? (
-                            <img src={guild.logo_url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                            <span>{guild?.name?.[0] || 'S'}</span>
-                        )}
-                        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-[#09090b] shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+            {/* Guild Header & Quick Invite Bar */}
+            <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-5 ring-1 ring-white/[0.04] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div
+                        className={`relative group ${canManageGuild ? 'cursor-pointer' : ''}`}
+                        onClick={() => canManageGuild && fileInputRef.current?.click()}
+                    >
+                        <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-500 font-bold text-xl overflow-hidden relative ring-1 ring-white/10">
+                            {guild?.logo_url ? (
+                                <img src={guild.logo_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                <span>{guild?.name?.[0] || 'S'}</span>
+                            )}
+                            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-[#09090b] shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
 
-                        {canManageGuild && (
-                            <div className="absolute inset-0 bg-violet-600/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
-                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                </svg>
-                            </div>
-                        )}
+                            {canManageGuild && (
+                                <div className="absolute inset-0 bg-violet-600/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
+                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    </svg>
+                                </div>
+                            )}
 
-                        {isUploadingLogo && (
-                            <div className="absolute inset-0 bg-zinc-950/80 flex items-center justify-center">
-                                <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
-                            </div>
-                        )}
+                            {isUploadingLogo && (
+                                <div className="absolute inset-0 bg-zinc-950/80 flex items-center justify-center">
+                                    <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                            )}
+                        </div>
+                        {canManageGuild && <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />}
                     </div>
-                    {canManageGuild && <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />}
+                    <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600">Гильдия</p>
+                        <h2 className="text-xl font-bold tracking-tight text-white">{guild?.name || 'SAGE'}</h2>
+                    </div>
                 </div>
-                <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600">Гильдия</p>
-                    <h2 className="text-xl font-bold tracking-tight text-white">{guild?.name || 'SAGE'}</h2>
-                </div>
+
+                <GuildInviteBar
+                    inviteSlug={guild?.invite_slug}
+                    guildName={guild?.name}
+                    canManage={canManageGuild}
+                    onUpdateSlug={handleUpdateInviteSlug}
+                />
             </div>
 
-            {/* Stats Triple Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Dashboard Cards Grid */}
+            <div className="grid grid-cols-1 gap-4">
                 {/* Participation Card */}
                 <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 ring-1 ring-white/[0.04] hover:border-white/10 hover:bg-zinc-900/70 transition-all duration-500 flex flex-col justify-between">
                     <div>
@@ -184,64 +171,6 @@ export const MemberDashboardView: FC = () => {
                     </div>
                     <p className="text-sm text-zinc-500 mt-2">Участий в событиях</p>
                 </div>
-
-
-                {/* Invite Link Card */}
-                <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 ring-1 ring-white/[0.04] hover:border-white/10 hover:bg-zinc-900/70 transition-all duration-500">
-                    <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600">Ссылка-приглашение</p>
-                        <h3 className="text-lg font-bold tracking-tight text-white mt-1">Приглашение в гильдию</h3>
-                    </div>
-
-                    <div className="flex items-center gap-2 mt-4 relative">
-                        {isEditingInvite ? (
-                            <div className="flex-1 flex gap-2 w-full">
-                                <input
-                                    type="text"
-                                    value={editInviteSlug}
-                                    onChange={(e) => setEditInviteSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
-                                    className="flex-1 bg-zinc-950/60 border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-zinc-200 outline-none focus:border-violet-500/50 transition-all"
-                                    placeholder="slug"
-                                    autoFocus
-                                />
-                                <button
-                                    onClick={handleSaveInvite}
-                                    disabled={isSavingInvite}
-                                    className="px-3 bg-white text-zinc-900 rounded-lg text-xs font-semibold hover:bg-zinc-100 disabled:opacity-50 transition-all"
-                                >
-                                    {isSavingInvite ? '...' : 'OK'}
-                                </button>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="flex-1 bg-zinc-950/60 border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-zinc-500 font-mono truncate">
-                                    {guild?.invite_slug ? `...invite/${guild.invite_slug}` : 'Нет ссылки'}
-                                </div>
-
-                                {canManageGuild && (
-                                    <button
-                                        onClick={handleEditInvite}
-                                        title="Изменить ссылку"
-                                        className="p-2 bg-zinc-800/60 hover:bg-zinc-700 border border-white/8 rounded-lg text-zinc-500 hover:text-zinc-200 transition-all"
-                                    >
-                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" />
-                                        </svg>
-                                    </button>
-                                )}
-
-                                <button
-                                    onClick={() => guild?.invite_slug && handleCopyInvite(guild.invite_slug)}
-                                    className="px-3 py-2 bg-zinc-800/60 hover:bg-zinc-700 border border-white/8 rounded-lg text-xs font-medium text-zinc-300 hover:text-white transition-all whitespace-nowrap"
-                                >
-                                    {copySuccess ? '✓ Скопировано' : 'Копировать'}
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-
-
             </div>
 
             {/* Recuitment Section */}
